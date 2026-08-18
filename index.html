@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GuadaHealth Transcribe</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="auth-screen" class="auth-screen">
+      <div class="landing-layout">
+        <section class="hero-panel">
+          <div class="eyebrow">Authorized clinical access</div>
+          <h1>Clinical transcription workspace</h1>
+          <p class="hero-copy">
+            Restricted to verified GuadaHealth staff for note review, transcription, and record maintenance.
+          </p>
+
+          <div class="portal-status">
+            <span class="status-dot"></span>
+            Secure access verified
+          </div>
+
+          <ul class="portal-list">
+            <li>Protected record review</li>
+            <li>Structured transcription workflow</li>
+            <li>Institutional archive management</li>
+          </ul>
+        </section>
+
+        <div class="auth-card">
+          <div class="brand">
+            <div class="brand-icon">✚</div>
+            <div>
+              <h2><span class="brand-guada">Guada</span><span class="brand-health">Health</span></h2>
+              <p>Secure transcription access</p>
+            </div>
+          </div>
+          <h2 class="signin-title">Sign in to access the transcription workspace</h2>
+          <p class="auth-copy">Only authorized staff can view, transcribe, and archive medical notes.</p>
+          <form id="login-form" class="stacked-form">
+            <label>
+              Username
+              <input id="username" name="username" type="text" placeholder="staff" required />
+            </label>
+            <label>
+              Password
+              <input id="password" name="password" type="password" placeholder="guada2026" required />
+            </label>
+            <button type="submit">Login to workspace</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="app-shell" class="app-shell hidden">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-icon">✚</div>
+          <div>
+            <h2><span class="brand-guada">Guada</span><span class="brand-health">Health</span></h2>
+            <p>Clinical note workspace</p>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <p class="eyebrow">Secure workflow</p>
+          <button id="logout-btn" class="ghost-btn">Sign out</button>
+        </div>
+      </aside>
+
+      <div class="main-panel">
+        <nav class="nav-links nav-links-top" aria-label="Primary">
+          <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+          <button class="nav-btn" data-view="transcribe">Transcribe</button>
+          <button class="nav-btn" data-view="records">Records</button>
+        </nav>
+
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">GuadaHealth Institution</p>
+          
+          </div>
+          <div class="topbar-actions">
+            <div id="auth-status" class="status-pill">Not signed in</div>
+          </div>
+        </header>
+
+        <main class="content">
+          <section id="dashboard-view" class="view active">
+            <div class="hero-card">
+              <div>
+                <p class="eyebrow">Today’s workflow</p>
+                <h2 id="welcome-title">Welcome to the transcription workspace</h2>
+                <p id="welcome-copy">
+                  Sign in to upload doctor notes, review plain-text transcriptions, and save them into the institutional archive.
+                </p>
+              </div>
+              <div class="hero-metrics">
+                <div class="metric-card">
+                  <span id="stat-notes">0</span>
+                  <small>notes stored</small>
+                </div>
+                <div class="metric-card">
+                  <span id="stat-pending">0</span>
+                  <small>pending review</small>
+                </div>
+                <div class="metric-card">
+                  <span id="stat-reviewed">0</span>
+                  <small>reviewed</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="card">
+                <div class="card-header">
+                  <h3>Session status</h3>
+                  <p>You are now inside the protected workspace for note transcription.</p>
+                </div>
+                <p class="session-copy">Use the navigation above to move between the dashboard, transcription tools, and saved records.</p>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <h3>Workflow snapshot</h3>
+                  <p>Each note moves through upload, transcription, review, and archive.</p>
+                </div>
+                <ol class="timeline">
+                  <li><strong>1.</strong> Upload a doctor note or scan.</li>
+                  <li><strong>2.</strong> Generate a plain-language transcription.</li>
+                  <li><strong>3.</strong> Save the note into the records database.</li>
+                  <li><strong>4.</strong> Review and update the note status.</li>
+                </ol>
+              </div>
+            </div>
+          </section>
+
+          <section id="transcribe-view" class="view">
+            <div class="card">
+              <div class="card-header">
+                <h2>Upload and transcribe</h2>
+                <p>Attach a scanned note, add context, and create a readable transcription.</p>
+              </div>
+              <form id="scanner-form" class="stacked-form">
+                <div class="form-row">
+                  <label>
+                    Document file
+                    <input id="file-input" type="file" accept="image/*,.pdf" />
+                  </label>
+                  <label>
+                    Patient / source
+                    <input id="source-input" type="text" placeholder="Example: Cardiology consult" />
+                  </label>
+                </div>
+                <button id="scan-button" type="button" class="secondary-btn">Generate transcription preview</button>
+                <textarea id="transcription-output" rows="10" placeholder="The transcription preview will appear here..."></textarea>
+                <div class="button-row">
+                  <button id="save-button" type="submit">Save note</button>
+                  <button id="clear-button" type="button" class="ghost-btn">Clear form</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section id="records-view" class="view">
+            <div class="card">
+              <div class="card-header">
+                <h2>Saved note records</h2>
+                <p>Review, search, and update transcribed entries stored for the institution.</p>
+              </div>
+              <div class="toolbar">
+                <input id="search-input" type="search" placeholder="Search notes..." />
+                <select id="status-filter" aria-label="Filter note status">
+                  <option value="all">All statuses</option>
+                  <option value="Pending review">Pending review</option>
+                  <option value="Reviewed">Reviewed</option>
+                </select>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Source</th>
+                      <th>Status</th>
+                      <th>Saved</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="records-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+    <script src="script.js"></script>
+  </body>
+</html>
