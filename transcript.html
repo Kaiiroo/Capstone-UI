@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GuadaHealth Transcribe</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-icon">✚</div>
+          <div>
+            <h2><span class="brand-guada">Guada</span><span class="brand-health">Health</span></h2>
+            <p>Clinical note workspace</p>
+          </div>
+        </div>
+
+        <nav class="nav-links nav-links-vertical" aria-label="Primary">
+          <a class="nav-btn" href="dashboard.html">Dashboard</a>
+          <a class="nav-btn active" href="transcript.html" aria-current="page">Transcribe</a>
+          <a class="nav-btn" href="records.html">Records</a>
+        </nav>
+
+        <div class="sidebar-card">
+          <button id="logout-btn" class="ghost-btn" type="button">Sign out</button>
+        </div>
+      </aside>
+
+      <div class="main-panel">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">GuadaHealth Institution</p>
+          </div>
+          <div class="topbar-actions">
+            <div id="auth-status" class="status-pill">Not signed in</div>
+          </div>
+        </header>
+
+        <main class="content">
+          <section class="card">
+            <div class="card-header">
+              <h2>Upload and transcribe</h2>
+              <p>Attach a scanned note, add context, and create a readable transcription.</p>
+            </div>
+            <form id="scanner-form" class="stacked-form">
+              <div class="form-row">
+                <label>
+                  Document file
+                  <input id="file-input" type="file" accept="image/*,.pdf" />
+                </label>
+                <label>
+                  Patient / source
+                  <input id="source-input" type="text" placeholder="Example: Cardiology consult" />
+                </label>
+              </div>
+              <div id="file-preview" class="file-preview" aria-live="polite">
+                <div id="file-preview-placeholder" class="file-preview-placeholder">
+                  Image preview will appear here after upload.
+                </div>
+                <img id="file-preview-image" alt="Uploaded document preview" hidden />
+              </div>
+              <button id="scan-button" type="button" class="secondary-btn">Generate transcription preview</button>
+              <textarea id="transcription-output" rows="10" placeholder="The transcription preview will appear here..."></textarea>
+              <div class="button-row">
+                <button id="save-button" type="submit">Save note</button>
+                <button id="clear-button" type="button" class="ghost-btn">Clear form</button>
+              </div>
+            </form>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+    <script type="module" src="js/transcript-page.js"></script>
+  </body>
+</html>

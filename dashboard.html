@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GuadaHealth Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-icon">✚</div>
+          <div>
+            <h2><span class="brand-guada">Guada</span><span class="brand-health">Health</span></h2>
+            <p>Clinical note workspace</p>
+          </div>
+        </div>
+
+        <nav class="nav-links nav-links-vertical" aria-label="Primary">
+          <a class="nav-btn active" href="dashboard.html" aria-current="page">Dashboard</a>
+          <a class="nav-btn" href="transcript.html">Transcribe</a>
+          <a class="nav-btn" href="records.html">Records</a>
+        </nav>
+
+        <div class="sidebar-card">
+          <button id="logout-btn" class="ghost-btn" type="button">Sign out</button>
+        </div>
+      </aside>
+
+      <div class="main-panel">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">GuadaHealth Institution</p>
+          </div>
+          <div class="topbar-actions">
+            <div id="auth-status" class="status-pill">Not signed in</div>
+          </div>
+        </header>
+
+        <main class="content">
+          <section class="hero-card">
+            <div>
+              <p class="eyebrow">Today’s workflow</p>
+              <h2 id="welcome-title">Welcome to the transcription workspace</h2>
+              <p id="welcome-copy">
+                Sign in to upload doctor notes, review plain-text transcriptions, and save them into the institutional archive.
+              </p>
+            </div>
+            <div class="hero-metrics">
+              <div class="metric-card">
+                <span id="stat-notes">0</span>
+                <small>notes stored</small>
+              </div>
+              <div class="metric-card">
+                <span id="stat-pending">0</span>
+                <small>pending review</small>
+              </div>
+              <div class="metric-card">
+                <span id="stat-reviewed">0</span>
+                <small>reviewed</small>
+              </div>
+            </div>
+          </section>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <h3>Session status</h3>
+                <p>You are now inside the protected workspace for note transcription.</p>
+              </div>
+              <p class="session-copy">Use the navigation to move between the dashboard, transcription tools, and saved records.</p>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3>Workflow snapshot</h3>
+                <p>Each note moves through upload, transcription, review, and archive.</p>
+              </div>
+              <ol class="timeline">
+                <li>Upload a doctor note or scan.</li>
+                <li>Generate a plain-language transcription.</li>
+                <li>Save the note into the records database.</li>
+                <li>Review and update the note text later.</li>
+              </ol>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+    <script type="module" src="js/dashboard-page.js"></script>
+  </body>
+</html>

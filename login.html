@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GuadaHealth Login</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="auth-screen">
+      <div class="landing-layout">
+        <section class="hero-panel">
+          <div class="eyebrow">Authorized clinical access</div>
+          <h1>Clinical transcription workspace</h1>
+          <p class="hero-copy">
+            Restricted to verified GuadaHealth staff for note review, transcription, and record maintenance.
+          </p>
+
+          <div class="portal-status">
+            <span class="status-dot"></span>
+            Secure access verified
+          </div>
+
+          <ul class="portal-list">
+            <li>Protected record review</li>
+            <li>Structured transcription workflow</li>
+            <li>Institutional archive management</li>
+          </ul>
+        </section>
+
+        <div class="auth-card">
+          <div class="brand">
+            <div class="brand-icon">✚</div>
+            <div>
+              <h2><span class="brand-guada">Guada</span><span class="brand-health">Health</span></h2>
+              <p>Secure transcription access</p>
+            </div>
+          </div>
+          <h2 class="signin-title">Sign in to access the transcription workspace</h2>
+          <p class="auth-copy">Only authorized staff can view, transcribe, and archive medical notes.</p>
+          <form id="login-form" class="stacked-form">
+            <label>
+              Username
+              <input id="username" name="username" type="text" placeholder="staff" required />
+            </label>
+            <label>
+              Password
+              <input id="password" name="password" type="password" placeholder="guada2026" required />
+            </label>
+            <button type="submit">Login to workspace</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+    <script type="module" src="js/login-page.js"></script>
+  </body>
+</html>
