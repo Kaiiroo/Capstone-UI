@@ -12,18 +12,18 @@ import {
   recordsTableBody,
   searchInput,
   statusFilter,
-} from './dom.js';
-import { state } from './state.js';
-import { loadRecords, saveRecords } from './storage.js';
-import { bindLogoutButton, requireAuthenticatedUser } from './session.js';
-import { escapeHtml, showToast } from './utils.js';
+} from '../shared/dom.js';
+import { state } from '../core/state.js';
+import { loadRecords, updatePrescription } from '../services/storage.js';
+import { bindLogoutButton, requireAuthenticatedUser } from '../core/session.js';
+import { escapeHtml, showToast } from '../shared/utils.js';
 
-const currentUser = requireAuthenticatedUser();
+const currentUser = await requireAuthenticatedUser();
 if (currentUser) {
   authStatus.textContent = `Signed in as ${currentUser}`;
   bindLogoutButton(logoutBtn);
 
-  state.records = loadRecords();
+  state.records = await loadRecords(currentUser);
 
   function renderRecords() {
     const query = searchInput.value.trim().toLowerCase();
@@ -83,7 +83,7 @@ if (currentUser) {
     recordModalTranscription.value = '';
   }
 
-  function saveActiveRecordTranscription(transcriptionValue) {
+  async function saveActiveRecordTranscription(transcriptionValue) {
     if (!state.activeRecordId) {
       return null;
     }
@@ -94,7 +94,8 @@ if (currentUser) {
     }
 
     record.transcription = transcriptionValue.trim() || 'No transcription generated yet.';
-    saveRecords(state.records);
+    const updatedRecord = await updatePrescription(record.id, record.transcription);
+    Object.assign(record, updatedRecord);
     renderRecords();
     return record;
   }
@@ -116,15 +117,20 @@ if (currentUser) {
     }
   });
 
-  recordModalSave.addEventListener('click', () => {
-    const record = saveActiveRecordTranscription(recordModalTranscription.value);
-    if (!record) {
-      closeRecordModal();
-      return;
-    }
+  recordModalSave.addEventListener('click', async () => {
+    try {
+      const record = await saveActiveRecordTranscription(recordModalTranscription.value);
+      if (!record) {
+        closeRecordModal();
+        return;
+      }
 
-    showToast(`Updated ${record.source}`);
-    closeRecordModal();
+      showToast(`Updated ${record.source}`);
+      closeRecordModal();
+    } catch (error) {
+      console.error(error);
+      showToast(error.message || 'Unable to update prescription');
+    }
   });
 
   document.addEventListener('keydown', (event) => {

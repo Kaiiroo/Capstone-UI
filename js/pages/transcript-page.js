@@ -1,9 +1,9 @@
-import { clearButton, fileInput, filePreview, filePreviewImage, filePreviewPlaceholder, logoutBtn, scanButton, scannerForm, sourceInput, transcriptionOutput, authStatus } from './dom.js';
-import { loadRecords, saveRecords } from './storage.js';
-import { bindLogoutButton, requireAuthenticatedUser } from './session.js';
-import { showToast } from './utils.js';
+import { clearButton, fileInput, filePreview, filePreviewImage, filePreviewPlaceholder, logoutBtn, scanButton, scannerForm, sourceInput, transcriptionOutput, authStatus } from '../shared/dom.js';
+import { createPrescription } from '../services/storage.js';
+import { bindLogoutButton, requireAuthenticatedUser } from '../core/session.js';
+import { showToast } from '../shared/utils.js';
 
-const currentUser = requireAuthenticatedUser();
+const currentUser = await requireAuthenticatedUser();
 if (currentUser) {
   authStatus.textContent = `Signed in as ${currentUser}`;
   bindLogoutButton(logoutBtn);
@@ -74,21 +74,16 @@ if (currentUser) {
       return;
     }
 
-    const records = loadRecords();
     const source = sourceInput.value.trim() || selectedFile.name;
-    records.unshift({
-      id: `note-${Date.now()}`,
-      source,
-      transcription: transcriptionOutput.value || 'No transcription generated yet.',
-      status: 'Pending review',
-      savedAt: new Date().toLocaleString(),
-      owner: currentUser,
-    });
-
-    saveRecords(records);
-    showToast(`Saved note for ${source}`);
-    clearForm();
-    window.location.href = 'records.html';
+    try {
+      await createPrescription(currentUser, selectedFile, transcriptionOutput.value || 'No transcription generated yet.');
+      showToast(`Saved note for ${source}`);
+      clearForm();
+      window.location.href = 'records.html';
+    } catch (error) {
+      console.error(error);
+      showToast(error.message || 'Unable to save prescription');
+    }
   });
 
   clearButton.addEventListener('click', () => {

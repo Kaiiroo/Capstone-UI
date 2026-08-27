@@ -18,9 +18,9 @@ import {
   transcriptionOutput,
   welcomeCopy,
   welcomeTitle,
-} from './dom.js';
-import { AUTH_KEY, VALID_USERS, state } from './state.js';
-import { loadRecords, saveRecords } from './storage.js';
+} from '../shared/dom.js';
+import { AUTH_KEY, VALID_USERS, state } from '../core/state.js';
+import { loadRecords, saveRecords } from '../services/storage.js';
 import {
   clearForm,
   setFormEnabled,
@@ -29,14 +29,14 @@ import {
   showFilePreview,
   showToast,
   switchView,
-} from './ui.js';
+} from '../shared/ui.js';
 import {
   closeRecordModal,
   openRecordModal,
   renderDashboardStats,
   renderRecords,
   saveActiveRecordTranscription,
-} from './records.js';
+} from '../components/records.js';
 
 function setAuthenticated(username) {
   state.currentUser = username;

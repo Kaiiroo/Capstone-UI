@@ -14,7 +14,7 @@ import {
   transcriptionOutput,
   views,
 } from './dom.js';
-import { state } from './state.js';
+import { state } from '../core/state.js';
 
 export function showToast(message) {
   const toast = document.getElementById('toast');

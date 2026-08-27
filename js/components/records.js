@@ -11,10 +11,10 @@ import {
   statPending,
   statReviewed,
   statusFilter,
-} from './dom.js';
-import { state } from './state.js';
-import { saveRecords } from './storage.js';
-import { escapeHtml } from './ui.js';
+} from '../shared/dom.js';
+import { state } from '../core/state.js';
+import { updatePrescription } from '../services/storage.js';
+import { escapeHtml } from '../shared/ui.js';
 
 export function renderDashboardStats() {
   statNotes.textContent = String(state.records.length);
@@ -92,7 +92,7 @@ export function saveActiveRecordTranscription(transcriptionValue) {
   }
 
   record.transcription = transcriptionValue.trim() || 'No transcription generated yet.';
-  saveRecords(state.records);
+  updatePrescription(record.id, record.transcription);
   renderRecords();
   return record;
 }
