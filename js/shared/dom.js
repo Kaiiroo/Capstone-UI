@@ -31,5 +31,7 @@ export const recordModalSource = document.getElementById('record-modal-source');
 export const recordModalStatus = document.getElementById('record-modal-status');
 export const recordModalSavedAt = document.getElementById('record-modal-saved-at');
 export const recordModalTranscription = document.getElementById('record-modal-transcription');
+export const recordModalImage = document.getElementById('record-modal-image');
+export const recordModalImagePlaceholder = document.getElementById('record-modal-image-placeholder');
 export const navButtons = Array.from(document.querySelectorAll('.nav-btn'));
 export const views = Array.from(document.querySelectorAll('.view'));

@@ -34,7 +34,7 @@
             <p class="eyebrow">GuadaHealth Institution</p>
           </div>
           <div class="topbar-actions">
-            <div id="auth-status" class="status-pill">Not signed in</div>
+            <div id="auth-status" class="status-pill">Checking session...</div>
           </div>
         </header>
 
@@ -93,6 +93,13 @@
           <div>
             <span class="modal-label">Saved</span>
             <strong id="record-modal-saved-at"></strong>
+          </div>
+        </div>
+        <div class="record-image-section">
+          <span class="modal-label">Uploaded prescription</span>
+          <div class="record-image-preview">
+            <span id="record-modal-image-placeholder">Image unavailable for this record.</span>
+            <img id="record-modal-image" alt="Uploaded prescription" hidden />
           </div>
         </div>
         <label class="modal-field">

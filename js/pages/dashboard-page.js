@@ -4,8 +4,8 @@ import { bindLogoutButton, requireAuthenticatedUser } from '../core/session.js';
 
 const currentUser = await requireAuthenticatedUser();
 if (currentUser) {
-  authStatus.textContent = `Signed in as ${currentUser}`;
-  welcomeTitle.textContent = `Welcome back, ${currentUser}`;
+  authStatus.textContent = `Signed in as ${currentUser.email || 'user'}`;
+  welcomeTitle.textContent = `Welcome back, ${currentUser.email || 'user'}`;
   welcomeCopy.textContent = 'Your transcriptions are ready to review, save, and route into the institution records archive.';
   bindLogoutButton(logoutBtn);
 

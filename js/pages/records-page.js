@@ -4,6 +4,8 @@ import {
   recordModal,
   recordModalCancel,
   recordModalClose,
+  recordModalImage,
+  recordModalImagePlaceholder,
   recordModalSave,
   recordModalSavedAt,
   recordModalSource,
@@ -18,14 +20,36 @@ import { loadRecords, updatePrescription } from '../services/storage.js';
 import { bindLogoutButton, requireAuthenticatedUser } from '../core/session.js';
 import { escapeHtml, showToast } from '../shared/utils.js';
 
-const currentUser = await requireAuthenticatedUser();
-if (currentUser) {
-  authStatus.textContent = `Signed in as ${currentUser}`;
-  bindLogoutButton(logoutBtn);
+bindLogoutButton(logoutBtn);
+authStatus.textContent = 'Checking session...';
 
-  state.records = await loadRecords(currentUser);
+async function initializeRecordsPage() {
+  const currentUser = await requireAuthenticatedUser();
+  if (!currentUser) {
+    return;
+  }
+
+  authStatus.textContent = `Signed in as ${currentUser.email || 'user'}`;
+
+  let recordsLoaded = false;
+  try {
+    state.records = await loadRecords(currentUser);
+    recordsLoaded = true;
+  } catch (error) {
+    console.error('Unable to load prescriptions:', error);
+    authStatus.textContent = `Signed in as ${currentUser.email || 'user'} - records unavailable`;
+    recordsTableBody.innerHTML = `
+      <tr>
+        <td colspan="4">Unable to load records. Check your Supabase table and RLS policies.</td>
+      </tr>
+    `;
+  }
 
   function renderRecords() {
+    if (!recordsLoaded) {
+      return;
+    }
+
     const query = searchInput.value.trim().toLowerCase();
     const filter = statusFilter.value;
     const visibleRecords = state.records.filter((record) => {
@@ -70,6 +94,14 @@ if (currentUser) {
     recordModalSource.textContent = record.source || 'Untitled note';
     recordModalStatus.textContent = record.status;
     recordModalSavedAt.textContent = record.savedAt;
+    recordModalImage.src = record.imageUrl || '';
+    recordModalImage.hidden = !record.imageUrl;
+    recordModalImagePlaceholder.hidden = Boolean(record.imageUrl);
+    recordModalImage.addEventListener('error', () => {
+      recordModalImage.hidden = true;
+      recordModalImagePlaceholder.hidden = false;
+      recordModalImagePlaceholder.textContent = 'Image could not be loaded. Verify the Storage path and SELECT policy.';
+    }, { once: true });
     recordModalTranscription.value = record.transcription || '';
     recordModal.classList.remove('hidden');
     recordModal.setAttribute('aria-hidden', 'false');
@@ -80,6 +112,9 @@ if (currentUser) {
     state.activeRecordId = '';
     recordModal.classList.add('hidden');
     recordModal.setAttribute('aria-hidden', 'true');
+    recordModalImage.hidden = true;
+    recordModalImage.removeAttribute('src');
+    recordModalImagePlaceholder.hidden = false;
     recordModalTranscription.value = '';
   }
 
@@ -144,3 +179,13 @@ if (currentUser) {
 
   renderRecords();
 }
+
+initializeRecordsPage().catch((error) => {
+  console.error('Unable to initialize Records:', error);
+  authStatus.textContent = 'Session could not be verified';
+  recordsTableBody.innerHTML = `
+    <tr>
+      <td colspan="4">Session verification failed. Refresh the page and sign in again.</td>
+    </tr>
+  `;
+});

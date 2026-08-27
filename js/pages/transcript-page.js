@@ -5,7 +5,7 @@ import { showToast } from '../shared/utils.js';
 
 const currentUser = await requireAuthenticatedUser();
 if (currentUser) {
-  authStatus.textContent = `Signed in as ${currentUser}`;
+  authStatus.textContent = `Signed in as ${currentUser.email || 'user'}`;
   bindLogoutButton(logoutBtn);
 
   let filePreviewUrl = '';
@@ -17,8 +17,10 @@ if (currentUser) {
     }
 
     filePreviewImage.hidden = true;
+    filePreviewImage.style.display = 'none';
     filePreviewImage.removeAttribute('src');
     filePreviewPlaceholder.hidden = false;
+    filePreviewPlaceholder.style.display = 'block';
     filePreviewPlaceholder.textContent = 'Image preview will appear here after upload.';
     filePreview.classList.remove('has-image');
   }
@@ -38,9 +40,16 @@ if (currentUser) {
     filePreviewUrl = URL.createObjectURL(file);
     filePreviewImage.src = filePreviewUrl;
     filePreviewImage.hidden = false;
+    filePreviewImage.style.display = 'block';
     filePreviewPlaceholder.hidden = true;
+    filePreviewPlaceholder.style.display = 'none';
     filePreview.classList.add('has-image');
   }
+
+  filePreviewImage.addEventListener('error', () => {
+    resetFilePreview();
+    filePreviewPlaceholder.textContent = `Unable to preview ${fileInput.files[0]?.name || 'this image'}.`;
+  });
 
   function clearForm() {
     scannerForm.reset();
@@ -65,7 +74,7 @@ if (currentUser) {
     showFilePreview(fileInput.files[0]);
   });
 
-  scannerForm.addEventListener('submit', (event) => {
+  scannerForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const selectedFile = fileInput.files[0];
