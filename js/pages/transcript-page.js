@@ -1,5 +1,6 @@
 import { clearButton, fileInput, filePreview, filePreviewImage, filePreviewPlaceholder, logoutBtn, scanButton, scannerForm, sourceInput, transcriptionOutput, authStatus } from '../shared/dom.js';
 import { createPrescription } from '../services/storage.js';
+import { runRoboflowOcr } from '../services/roboflow.js';
 import { bindLogoutButton, requireAuthenticatedUser } from '../core/session.js';
 import { showToast } from '../shared/utils.js';
 
@@ -57,7 +58,7 @@ if (currentUser) {
     resetFilePreview();
   }
 
-  scanButton.addEventListener('click', () => {
+  scanButton.addEventListener('click', async () => {
     const selectedFile = fileInput.files[0];
     if (!selectedFile) {
       showToast('Choose a document first to generate a preview.');
@@ -65,9 +66,19 @@ if (currentUser) {
       return;
     }
 
-    const source = sourceInput.value.trim() || selectedFile.name;
-    transcriptionOutput.value = `Transcription preview for ${source}\n\nReadable note:\nThe clinical summary has been standardized into plain language. Symptoms, medications, and follow-up instructions are now easier for staff to read and act on.`;
-    showToast('Preview generated');
+    scanButton.disabled = true;
+    scanButton.textContent = 'Transcribing...';
+    try {
+      transcriptionOutput.value = await runRoboflowOcr(selectedFile);
+      showToast('Transcription generated');
+    } catch (error) {
+      console.error(error);
+      transcriptionOutput.value = error.message || 'Unable to generate transcription.';
+      showToast('Transcription failed');
+    } finally {
+      scanButton.disabled = false;
+      scanButton.textContent = 'Generate transcription preview';
+    }
   });
 
   fileInput.addEventListener('change', () => {
