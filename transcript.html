@@ -16,7 +16,7 @@
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand">
-          <div class="brand-icon">✚</div>
+          <div class="brand-icon" aria-label="GuadaHealth logo">GH</div>
           <div>
             <h2><span class="brand-guada">Guada</span><span class="brand-health">Health</span></h2>
             <p>Clinical note workspace</p>
@@ -68,6 +68,12 @@
                 <img id="file-preview-image" alt="Uploaded document preview" hidden />
               </div>
               <button id="scan-button" type="button" class="secondary-btn">Generate transcription preview</button>
+              <div id="transcription-progress" class="transcription-progress" hidden aria-live="polite">
+                <span id="transcription-progress-label">Reading document and transcribing...</span>
+                <div class="progress-loader" role="progressbar" aria-label="Transcription in progress">
+                  <div class="progress"></div>
+                </div>
+              </div>
               <textarea id="transcription-output" rows="10" placeholder="The transcription preview will appear here..."></textarea>
               <div class="button-row">
                 <button id="save-button" type="submit">Save note</button>

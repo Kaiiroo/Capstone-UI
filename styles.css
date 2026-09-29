@@ -2,22 +2,22 @@
   color-scheme: light;
 
   /* Surfaces */
-  --bg: #f4f7f5;
-  --bg-2: #eaf0ec;
+  --bg: #f7fbfb;
+  --bg-2: #edf7f6;
   --panel: #ffffff;
   --panel-alt: #f1f5f2;
   --panel-strong: #ffffff;
 
   /* Ink */
-  --text: #16211c;
-  --muted: #59695f;
-  --muted-2: #8a978d;
+  --text: #626775;
+  --muted: #777b8b;
+  --muted-2: #9da1ae;
 
-  /* Brand — deep clinical teal, used deliberately, not as decoration */
-  --primary: #0f6e63;
-  --primary-strong: #0a4f48;
-  --primary-soft: rgba(15, 110, 99, 0.1);
-  --primary-line: rgba(15, 110, 99, 0.28);
+  /* Brand — aqua healthcare palette */
+  --primary: #61c8c5;
+  --primary-strong: #4ca9a8;
+  --primary-soft: rgba(97, 200, 197, 0.16);
+  --primary-line: rgba(97, 200, 197, 0.38);
 
   /* Status */
   --success: #2f7d4f;
@@ -27,9 +27,9 @@
   --danger: #b64332;
   --danger-soft: rgba(182, 67, 50, 0.1);
 
-  --brand-ink: #101b17;
-  --border: rgba(16, 27, 23, 0.12);
-  --border-soft: rgba(16, 27, 23, 0.07);
+  --brand-ink: #242936;
+  --border: rgba(98, 103, 117, 0.16);
+  --border-soft: rgba(98, 103, 117, 0.09);
 
   --shadow-soft: 0 1px 2px rgba(12, 20, 17, 0.05), 0 10px 24px -8px rgba(12, 20, 17, 0.12);
   --shadow-strong: 0 4px 10px rgba(12, 20, 17, 0.08), 0 30px 60px -16px rgba(12, 20, 17, 0.24);
@@ -209,11 +209,11 @@ button:hover:not(:disabled) {
 }
 
 .hero-panel .eyebrow {
-  color: #8fd4c6;
+  color: #a2e3e0;
 }
 
 .hero-panel .eyebrow::before {
-  background: #8fd4c6;
+  background: var(--primary);
 }
 
 .hero-panel h1 {
@@ -252,8 +252,8 @@ button:hover:not(:disabled) {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #4ad39a;
-  box-shadow: 0 0 0 4px rgba(74, 211, 154, 0.18);
+  background: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
   flex: none;
 }
 
@@ -280,7 +280,7 @@ button:hover:not(:disabled) {
   top: 7px;
   width: 12px;
   height: 1px;
-  background: #8fd4c6;
+  background: var(--primary);
 }
 
 .auth-card {
@@ -354,7 +354,9 @@ button:hover:not(:disabled) {
   color: #ffffff;
   display: grid;
   place-items: center;
-  font-size: 1.15rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: -0.08em;
   font-weight: 700;
   flex: none;
 }
@@ -378,7 +380,7 @@ button:hover:not(:disabled) {
 }
 
 .sidebar .brand-guada {
-  color: #8fd4c6;
+  color: #a2e3e0;
 }
 
 .sidebar .brand-health {
@@ -451,7 +453,7 @@ button:hover:not(:disabled) {
   background: rgba(143, 212, 198, 0.1);
   color: #eef3f0;
   border-color: transparent;
-  border-left-color: #4ad39a;
+  border-left-color: var(--primary);
   box-shadow: none;
   font-weight: 600;
 }
@@ -769,9 +771,65 @@ button:disabled {
 }
 
 .secondary-btn:hover:not(:disabled) {
-  background: rgba(15, 110, 99, 0.18);
+  background: var(--primary-soft);
   border-color: transparent;
   color: var(--primary-strong);
+}
+
+#scan-button {
+  background: var(--brand-ink);
+  color: #ffffff;
+  border-color: var(--brand-ink);
+}
+
+#scan-button:hover:not(:disabled) {
+  background: #343b4a;
+  border-color: #343b4a;
+}
+
+.transcription-progress {
+  display: grid;
+  gap: 7px;
+  justify-items: center;
+  color: var(--primary-strong);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.transcription-progress[hidden] {
+  display: none;
+}
+
+.progress-loader {
+  width: min(100%, 300px);
+  height: 10px;
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--success-soft);
+}
+
+.progress {
+  width: 100%;
+  height: 10px;
+  border-radius: 7px;
+  background: var(--success);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: transcription-loading 2s ease-in-out infinite;
+}
+
+@keyframes transcription-loading {
+  0% {
+    transform: scaleX(0);
+  }
+
+  50% {
+    transform: scaleX(1);
+  }
+
+  100% {
+    transform: scaleX(0);
+  }
 }
 
 .ghost-btn {
@@ -1112,7 +1170,7 @@ th:last-child {
 
   .nav-btn.active {
     border-left-color: transparent;
-    border-bottom-color: #4ad39a;
+    border-bottom-color: var(--primary);
   }
 
   .sidebar-card {
