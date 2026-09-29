@@ -12,7 +12,7 @@
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body class="auth-pending">
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand">
@@ -52,18 +52,12 @@
             </div>
             <div class="toolbar">
               <input id="search-input" type="search" placeholder="Search notes..." />
-              <select id="status-filter" aria-label="Filter note status">
-                <option value="all">All statuses</option>
-                <option value="Pending review">Pending review</option>
-                <option value="Reviewed">Reviewed</option>
-              </select>
             </div>
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr>
                     <th>Source</th>
-                    <th>Status</th>
                     <th>Saved</th>
                     <th>Action</th>
                   </tr>
@@ -90,11 +84,7 @@
         <div class="modal-meta">
           <div>
             <span class="modal-label">Source</span>
-            <strong id="record-modal-source"></strong>
-          </div>
-          <div>
-            <span class="modal-label">Status</span>
-            <strong id="record-modal-status"></strong>
+            <input id="record-modal-source" type="text" placeholder="N/A" />
           </div>
           <div>
             <span class="modal-label">Saved</span>
@@ -119,6 +109,13 @@
       </div>
     </div>
 
+    <script>
+      window.setTimeout(() => {
+        if (document.body.classList.contains('auth-pending')) {
+          window.location.replace('login.html');
+        }
+      }, 10000);
+    </script>
     <script type="module" src="js/pages/records-page.js"></script>
   </body>
 </html>

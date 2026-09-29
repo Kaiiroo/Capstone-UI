@@ -20,7 +20,7 @@ async function mapPrescription(prescription) {
 
   return {
     id: prescription.prescription_id,
-    source: prescription.image_path?.split('/').pop() || 'Untitled prescription',
+    source: prescription.source || 'N/A',
     imagePath: prescription.image_path || '',
     imageUrl,
     transcription: prescription.raw_ocr_text || '',
@@ -33,7 +33,7 @@ async function mapPrescription(prescription) {
 export async function loadRecords(user) {
   const { data, error } = await supabase
     .from('prescriptions')
-    .select('prescription_id, user_id, image_path, raw_ocr_text, status, created_at')
+    .select('prescription_id, user_id, image_path, source, raw_ocr_text, status, created_at')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
@@ -44,7 +44,7 @@ export async function loadRecords(user) {
   return Promise.all(data.map(mapPrescription));
 }
 
-export async function createPrescription(user, file, transcription) {
+export async function createPrescription(user, file, transcription, source = 'N/A') {
   const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
   const imagePath = `${user.id}/${crypto.randomUUID()}-${safeFileName}`;
   const { error: uploadError } = await supabase.storage
@@ -64,10 +64,11 @@ export async function createPrescription(user, file, transcription) {
     .insert({
       user_id: user.id,
       image_path: imagePath,
+      source: source.trim() || 'N/A',
       raw_ocr_text: transcription,
       status: 'pending',
     })
-    .select('prescription_id, user_id, image_path, raw_ocr_text, status, created_at')
+    .select('prescription_id, user_id, image_path, source, raw_ocr_text, status, created_at')
     .single();
 
   if (error) {
@@ -78,12 +79,12 @@ export async function createPrescription(user, file, transcription) {
   return mapPrescription(data);
 }
 
-export async function updatePrescription(prescriptionId, transcription) {
+export async function updatePrescription(prescriptionId, transcription, source = 'N/A') {
   const { data, error } = await supabase
     .from('prescriptions')
-    .update({ raw_ocr_text: transcription })
+    .update({ raw_ocr_text: transcription, source: source.trim() || 'N/A' })
     .eq('prescription_id', prescriptionId)
-    .select('prescription_id, user_id, image_path, raw_ocr_text, status, created_at')
+    .select('prescription_id, user_id, image_path, source, raw_ocr_text, status, created_at')
     .single();
 
   if (error) {

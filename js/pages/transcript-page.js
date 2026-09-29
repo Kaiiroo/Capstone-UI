@@ -94,9 +94,9 @@ if (currentUser) {
       return;
     }
 
-    const source = sourceInput.value.trim() || selectedFile.name;
+    const source = sourceInput.value.trim() || 'N/A';
     try {
-      await createPrescription(currentUser, selectedFile, transcriptionOutput.value || 'No transcription generated yet.');
+      await createPrescription(currentUser, selectedFile, transcriptionOutput.value || 'No transcription generated yet.', source);
       showToast(`Saved note for ${source}`);
       clearForm();
       window.location.href = 'records.html';

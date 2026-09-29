@@ -1,6 +1,9 @@
 -- Storage policies for the private prescription_images bucket.
 -- Run this in the Supabase SQL Editor after creating the bucket.
 
+alter table public.prescriptions
+  add column if not exists source text not null default 'N/A';
+
 create policy "Users can upload their prescription images"
 on storage.objects for insert
 to authenticated

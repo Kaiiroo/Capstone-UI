@@ -1,13 +1,26 @@
 import { supabase } from '../config/supabase.js';
 import { state } from './state.js';
 
-export async function getCurrentUser() {
-  const { data: { session }, error } = await supabase.auth.getSession();
-  if (error) {
-    throw error;
-  }
+const SESSION_CHECK_TIMEOUT_MS = 8000;
 
-  return session?.user || null;
+export async function getCurrentUser() {
+  let timeoutId;
+  try {
+    const sessionRequest = supabase.auth.getSession();
+    const timeoutRequest = new Promise((_, reject) => {
+      timeoutId = window.setTimeout(() => {
+        reject(new Error('Supabase session check timed out.'));
+      }, SESSION_CHECK_TIMEOUT_MS);
+    });
+    const { data: { session }, error } = await Promise.race([sessionRequest, timeoutRequest]);
+    if (error) {
+      throw error;
+    }
+
+    return session?.user || null;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
 }
 
 export async function clearCurrentUser() {
@@ -33,6 +46,12 @@ export async function requireAuthenticatedUser() {
     return null;
   }
 
+  document.body.classList.remove('auth-pending');
+  supabase.auth.onAuthStateChange((_event, session) => {
+    if (!session) {
+      window.location.replace('login.html');
+    }
+  });
   state.currentUser = currentUser.email || currentUser.id;
   return currentUser;
 }

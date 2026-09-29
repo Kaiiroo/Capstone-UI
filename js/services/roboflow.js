@@ -11,7 +11,17 @@ function fileToBase64(file) {
 
 function findOcrText(value) {
   if (typeof value === 'string' && value.trim()) {
-    return value.trim();
+    const trimmedValue = value.trim();
+    if (trimmedValue.startsWith('{') || trimmedValue.startsWith('[')) {
+      try {
+        const parsedValue = JSON.parse(trimmedValue);
+        return findOcrText(parsedValue);
+      } catch {
+        // Keep non-JSON text unchanged.
+      }
+    }
+
+    return trimmedValue;
   }
 
   if (!value || typeof value !== 'object') {
@@ -37,37 +47,61 @@ function findOcrText(value) {
 }
 
 export async function runRoboflowOcr(file) {
+  const encodingStartedAt = performance.now();
   const image = await fileToBase64(file);
-  const response = await fetch('/api/roboflow', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      inputs: {
-        [ROBOFLOW_IMAGE_INPUT]: { type: 'base64', value: image },
-      },
-    }),
+  console.log('Roboflow image prepared:', {
+    elapsedMs: Math.round(performance.now() - encodingStartedAt),
+    fileSizeBytes: file.size,
+    base64SizeBytes: image.length,
   });
 
-  const responseText = await response.text();
-  let result;
+  const requestStartedAt = performance.now();
   try {
-    result = responseText ? JSON.parse(responseText) : {};
-  } catch {
-    throw new Error(
-      response.status === 501
-        ? 'The app server does not support transcription requests. Start the app with: python server.py'
-        : `Roboflow returned an invalid response (${response.status}).`,
-    );
-  }
+    const response = await fetch('/api/roboflow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        inputs: {
+          [ROBOFLOW_IMAGE_INPUT]: { type: 'base64', value: image },
+        },
+      }),
+    });
 
-  if (!response.ok) {
-    throw new Error(result.error || result.message || `Roboflow request failed (${response.status}).`);
-  }
+    const responseText = await response.text();
+    console.log('Roboflow request:', {
+      elapsedMs: Math.round(performance.now() - requestStartedAt),
+      status: response.status,
+      processingTime: response.headers.get('x-processing-time'),
+      coldStart: response.headers.get('x-model-cold-start'),
+    });
 
-  const text = findOcrText(result);
-  if (!text) {
-    throw new Error('Roboflow returned no OCR text. Check the workflow output field and input name.');
-  }
+    let result;
+    try {
+      result = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      throw new Error(
+        response.status === 501
+          ? 'The app server does not support transcription requests. Start the app with: python server.py'
+          : `Roboflow returned an invalid response (${response.status}).`,
+      );
+    }
 
-  return text;
+    if (!response.ok) {
+      throw new Error(result.error || result.message || `Roboflow request failed (${response.status}).`);
+    }
+
+    const text = findOcrText(result);
+    if (!text) {
+      throw new Error('Roboflow returned no OCR text. Check the workflow output field and input name.');
+    }
+
+    return text;
+  } catch (error) {
+    console.error('Roboflow request failed:', {
+      elapsedMs: Math.round(performance.now() - requestStartedAt),
+      name: error.name,
+      message: error.message,
+    });
+    throw error;
+  }
 }

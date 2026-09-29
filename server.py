@@ -1,5 +1,6 @@
 import json
 import re
+import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -7,6 +8,7 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).parent
 ROBOFLOW_ENDPOINT = 'https://serverless.roboflow.com/infer/workflows'
+ROBOFLOW_TIMEOUT_SECONDS = 90
 
 
 def read_config_value(name):
@@ -52,17 +54,43 @@ class AppHandler(SimpleHTTPRequestHandler):
             method='POST',
         )
 
+        started_at = time.perf_counter()
         try:
-            with urlopen(request, timeout=30) as response:
-                self.send_json(response.status, json.loads(response.read()))
+            with urlopen(request, timeout=ROBOFLOW_TIMEOUT_SECONDS) as response:
+                result = json.loads(response.read())
+                elapsed_ms = round((time.perf_counter() - started_at) * 1000)
+                print(
+                    'Roboflow request:',
+                    {
+                        'elapsedMs': elapsed_ms,
+                        'status': response.status,
+                        'processingTime': response.headers.get('x-processing-time'),
+                        'coldStart': response.headers.get('x-model-cold-start'),
+                    },
+                    flush=True,
+                )
+                self.send_json(response.status, result)
         except HTTPError as error:
+            elapsed_ms = round((time.perf_counter() - started_at) * 1000)
+            print(
+                'Roboflow HTTP error:',
+                {'elapsedMs': elapsed_ms, 'status': error.code},
+                flush=True,
+            )
             try:
                 body = json.loads(error.read())
             except json.JSONDecodeError:
                 body = {'error': error.reason}
             self.send_json(error.code, body)
         except (URLError, TimeoutError) as error:
-            self.send_json(502, {'error': f'Unable to reach Roboflow: {error.reason}'})
+            reason = getattr(error, 'reason', str(error))
+            elapsed_ms = round((time.perf_counter() - started_at) * 1000)
+            print(
+                'Roboflow request failed:',
+                {'elapsedMs': elapsed_ms, 'error': reason},
+                flush=True,
+            )
+            self.send_json(502, {'error': f'Unable to reach Roboflow: {reason}'})
 
     def send_json(self, status, payload):
         body = json.dumps(payload).encode('utf-8')
@@ -70,7 +98,10 @@ class AppHandler(SimpleHTTPRequestHandler):
         self.send_header('Content-Type', 'application/json')
         self.send_header('Content-Length', str(len(body)))
         self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionAbortedError):
+            self.log_message('Client disconnected before the response was sent')
 
 
 if __name__ == '__main__':

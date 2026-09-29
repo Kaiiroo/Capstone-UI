@@ -9,11 +9,9 @@ import {
   recordModalSave,
   recordModalSavedAt,
   recordModalSource,
-  recordModalStatus,
   recordModalTranscription,
   recordsTableBody,
   searchInput,
-  statusFilter,
 } from '../shared/dom.js';
 import { state } from '../core/state.js';
 import { loadRecords, updatePrescription } from '../services/storage.js';
@@ -40,7 +38,7 @@ async function initializeRecordsPage() {
     authStatus.textContent = `Signed in as ${currentUser.email || 'user'} - records unavailable`;
     recordsTableBody.innerHTML = `
       <tr>
-        <td colspan="4">Unable to load records. Check your Supabase table and RLS policies.</td>
+        <td colspan="3">Unable to load records. Check your Supabase table and RLS policies.</td>
       </tr>
     `;
   }
@@ -51,17 +49,14 @@ async function initializeRecordsPage() {
     }
 
     const query = searchInput.value.trim().toLowerCase();
-    const filter = statusFilter.value;
     const visibleRecords = state.records.filter((record) => {
-      const matchesText = [record.source, record.status].join(' ').toLowerCase().includes(query);
-      const matchesStatus = filter === 'all' || record.status === filter;
-      return matchesText && matchesStatus;
+      return record.source.toLowerCase().includes(query);
     });
 
     if (!visibleRecords.length) {
       recordsTableBody.innerHTML = `
         <tr>
-          <td colspan="4">No matching notes found.</td>
+          <td colspan="3">No matching notes found.</td>
         </tr>
       `;
       return;
@@ -69,11 +64,9 @@ async function initializeRecordsPage() {
 
     recordsTableBody.innerHTML = visibleRecords
       .map((record) => {
-        const badgeClass = record.status === 'Reviewed' ? 'reviewed' : 'pending';
         return `
           <tr>
             <td>${escapeHtml(record.source || 'Untitled note')}</td>
-            <td><span class="badge ${badgeClass}">${escapeHtml(record.status)}</span></td>
             <td>${escapeHtml(record.savedAt)}</td>
             <td>
               <button class="ghost-btn edit-record-btn" data-id="${record.id}" type="button">Edit note</button>
@@ -91,8 +84,7 @@ async function initializeRecordsPage() {
     }
 
     state.activeRecordId = recordId;
-    recordModalSource.textContent = record.source || 'Untitled note';
-    recordModalStatus.textContent = record.status;
+    recordModalSource.value = record.source || 'N/A';
     recordModalSavedAt.textContent = record.savedAt;
     recordModalImage.src = record.imageUrl || '';
     recordModalImage.hidden = !record.imageUrl;
@@ -115,6 +107,7 @@ async function initializeRecordsPage() {
     recordModalImage.hidden = true;
     recordModalImage.removeAttribute('src');
     recordModalImagePlaceholder.hidden = false;
+    recordModalSource.value = '';
     recordModalTranscription.value = '';
   }
 
@@ -129,7 +122,7 @@ async function initializeRecordsPage() {
     }
 
     record.transcription = transcriptionValue.trim() || 'No transcription generated yet.';
-    const updatedRecord = await updatePrescription(record.id, record.transcription);
+    const updatedRecord = await updatePrescription(record.id, record.transcription, recordModalSource.value);
     Object.assign(record, updatedRecord);
     renderRecords();
     return record;
@@ -175,17 +168,16 @@ async function initializeRecordsPage() {
   });
 
   searchInput.addEventListener('input', renderRecords);
-  statusFilter.addEventListener('change', renderRecords);
 
   renderRecords();
 }
 
 initializeRecordsPage().catch((error) => {
   console.error('Unable to initialize Records:', error);
-  authStatus.textContent = 'Session could not be verified';
+  authStatus.textContent = 'Records could not be loaded';
   recordsTableBody.innerHTML = `
     <tr>
-      <td colspan="4">Session verification failed. Refresh the page and sign in again.</td>
+      <td colspan="3">Records could not be loaded. Check the browser console for the Supabase error.</td>
     </tr>
   `;
 });

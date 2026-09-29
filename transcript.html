@@ -12,7 +12,7 @@
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body class="auth-pending">
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand">
@@ -80,6 +80,13 @@
     </div>
 
     <div id="toast" class="toast" aria-live="polite"></div>
+    <script>
+      window.setTimeout(() => {
+        if (document.body.classList.contains('auth-pending')) {
+          window.location.replace('login.html');
+        }
+      }, 10000);
+    </script>
     <script type="module" src="js/pages/transcript-page.js"></script>
   </body>
 </html>
