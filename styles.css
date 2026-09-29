@@ -359,6 +359,7 @@ button:hover:not(:disabled) {
   letter-spacing: -0.08em;
   font-weight: 700;
   flex: none;
+  object-fit: contain;
 }
 
 .brand h2 {

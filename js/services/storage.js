@@ -30,11 +30,10 @@ async function mapPrescription(prescription) {
   };
 }
 
-export async function loadRecords(user) {
+export async function loadRecords() {
   const { data, error } = await supabase
     .from('prescriptions')
     .select('prescription_id, user_id, image_path, source, raw_ocr_text, status, created_at')
-    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
   if (error) {
