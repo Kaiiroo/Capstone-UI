@@ -48,7 +48,18 @@ export async function runRoboflowOcr(file) {
     }),
   });
 
-  const result = await response.json();
+  const responseText = await response.text();
+  let result;
+  try {
+    result = responseText ? JSON.parse(responseText) : {};
+  } catch {
+    throw new Error(
+      response.status === 501
+        ? 'The app server does not support transcription requests. Start the app with: python server.py'
+        : `Roboflow returned an invalid response (${response.status}).`,
+    );
+  }
+
   if (!response.ok) {
     throw new Error(result.error || result.message || `Roboflow request failed (${response.status}).`);
   }
