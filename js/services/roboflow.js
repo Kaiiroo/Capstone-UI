@@ -1,11 +1,54 @@
 import { ROBOFLOW_IMAGE_INPUT } from '../config/roboflow.js';
 
-function fileToBase64(file) {
+function fileToBase64(file, onProgress) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
+    reader.addEventListener('progress', (event) => {
+      if (event.lengthComputable) {
+        onProgress(event.loaded / event.total);
+      }
+    });
     reader.addEventListener('load', () => resolve(String(reader.result).split(',')[1]));
     reader.addEventListener('error', () => reject(new Error('Unable to read the selected document.')));
     reader.readAsDataURL(file);
+  });
+}
+
+// XHR instead of fetch: fetch can't report upload or download progress.
+function postJsonWithProgress(url, body, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) {
+        onProgress({ stage: 'upload', fraction: event.loaded / event.total });
+      }
+    });
+    // Request fully sent: the server is now running the OCR workflow.
+    xhr.upload.addEventListener('load', () => onProgress({ stage: 'analyze', fraction: null }));
+    xhr.addEventListener('readystatechange', () => {
+      if (xhr.readyState === XMLHttpRequest.HEADERS_RECEIVED) {
+        onProgress({ stage: 'finalize', fraction: 0 });
+      }
+    });
+    xhr.addEventListener('progress', (event) => {
+      if (event.lengthComputable) {
+        onProgress({ stage: 'finalize', fraction: event.loaded / event.total });
+      }
+    });
+    xhr.addEventListener('load', () => {
+      resolve({
+        ok: xhr.status >= 200 && xhr.status < 300,
+        status: xhr.status,
+        text: xhr.responseText,
+        header: (name) => xhr.getResponseHeader(name),
+      });
+    });
+    xhr.addEventListener('error', () => reject(new TypeError('Unable to reach the transcription server.')));
+    xhr.addEventListener('abort', () => reject(new Error('Transcription request was cancelled.')));
+    xhr.send(body);
   });
 }
 
@@ -46,9 +89,11 @@ function findOcrText(value) {
   return '';
 }
 
-export async function runRoboflowOcr(file) {
+export async function runRoboflowOcr(file, onProgress = () => {}) {
   const encodingStartedAt = performance.now();
-  const image = await fileToBase64(file);
+  onProgress({ stage: 'read', fraction: 0 });
+  const image = await fileToBase64(file, (fraction) => onProgress({ stage: 'read', fraction }));
+  onProgress({ stage: 'upload', fraction: 0 });
   console.log('Roboflow image prepared:', {
     elapsedMs: Math.round(performance.now() - encodingStartedAt),
     fileSizeBytes: file.size,
@@ -57,22 +102,22 @@ export async function runRoboflowOcr(file) {
 
   const requestStartedAt = performance.now();
   try {
-    const response = await fetch('/api/roboflow', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const response = await postJsonWithProgress(
+      '/api/roboflow',
+      JSON.stringify({
         inputs: {
           [ROBOFLOW_IMAGE_INPUT]: { type: 'base64', value: image },
         },
       }),
-    });
+      onProgress,
+    );
 
-    const responseText = await response.text();
+    const responseText = response.text;
     console.log('Roboflow request:', {
       elapsedMs: Math.round(performance.now() - requestStartedAt),
       status: response.status,
-      processingTime: response.headers.get('x-processing-time'),
-      coldStart: response.headers.get('x-model-cold-start'),
+      processingTime: response.header('x-processing-time'),
+      coldStart: response.header('x-model-cold-start'),
     });
 
     let result;

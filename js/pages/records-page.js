@@ -11,6 +11,7 @@ import {
   recordModalSource,
   recordModalTranscription,
   recordsTableBody,
+  exportRecordsButton,
   searchInput,
 } from '../shared/dom.js';
 import { state } from '../core/state.js';
@@ -75,6 +76,29 @@ async function initializeRecordsPage() {
         `;
       })
       .join('');
+  }
+
+  function csvValue(value) {
+    return `"${String(value ?? '').replace(/"/g, '""')}"`;
+  }
+
+  function exportRecords() {
+    const header = ['Source', 'Saved', 'Transcription', 'Image path'];
+    const rows = state.records.map((record) => [
+      record.source || 'N/A',
+      record.savedAt,
+      record.transcription || '',
+      record.imagePath || '',
+    ]);
+    const csv = [header, ...rows].map((row) => row.map(csvValue).join(',')).join('\r\n');
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `guadahealth-records-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(downloadUrl);
+    showToast(`Exported ${state.records.length} record${state.records.length === 1 ? '' : 's'}`);
   }
 
   function openRecordModal(recordId) {
@@ -168,6 +192,7 @@ async function initializeRecordsPage() {
   });
 
   searchInput.addEventListener('input', renderRecords);
+  exportRecordsButton.addEventListener('click', exportRecords);
 
   renderRecords();
 }

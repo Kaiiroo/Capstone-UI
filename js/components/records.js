@@ -8,8 +8,8 @@ import {
   recordsTableBody,
   searchInput,
   statNotes,
-  statPending,
-  statReviewed,
+  statToday,
+  statWeek,
   statusFilter,
 } from '../shared/dom.js';
 import { state } from '../core/state.js';
@@ -18,8 +18,12 @@ import { escapeHtml } from '../shared/ui.js';
 
 export function renderDashboardStats() {
   statNotes.textContent = String(state.records.length);
-  statPending.textContent = String(state.records.filter((record) => record.status === 'Pending review').length);
-  statReviewed.textContent = String(state.records.filter((record) => record.status === 'Reviewed').length);
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const sevenDaysAgo = new Date(startOfToday);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+  statWeek.textContent = String(state.records.filter((record) => new Date(record.createdAt) >= sevenDaysAgo).length);
+  statToday.textContent = String(state.records.filter((record) => new Date(record.createdAt) >= startOfToday).length);
 }
 
 export function renderRecords() {

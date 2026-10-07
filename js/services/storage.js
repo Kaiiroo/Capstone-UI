@@ -25,6 +25,7 @@ async function mapPrescription(prescription) {
     imageUrl,
     transcription: prescription.raw_ocr_text || '',
     status: status === 'reviewed' ? 'Reviewed' : 'Pending review',
+    createdAt: prescription.created_at,
     savedAt: new Date(prescription.created_at).toLocaleString(),
     owner: prescription.user_id,
   };

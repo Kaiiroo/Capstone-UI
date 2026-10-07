@@ -2,6 +2,22 @@ import { supabase } from '../config/supabase.js';
 import { state } from './state.js';
 
 const SESSION_CHECK_TIMEOUT_MS = 8000;
+// Lets app pages paint immediately on in-app navigation (see the inline script in each page)
+// instead of hiding the shell until the async Supabase check finishes. Purely cosmetic:
+// requireAuthenticatedUser still redirects if the session turns out to be invalid.
+const AUTH_HINT_KEY = 'gh-authed';
+
+function setAuthHint(isAuthenticated) {
+  try {
+    if (isAuthenticated) {
+      window.sessionStorage.setItem(AUTH_HINT_KEY, '1');
+    } else {
+      window.sessionStorage.removeItem(AUTH_HINT_KEY);
+    }
+  } catch {
+    // Storage unavailable; pages fall back to waiting for the session check.
+  }
+}
 
 export async function getCurrentUser() {
   let timeoutId;
@@ -25,6 +41,7 @@ export async function getCurrentUser() {
 
 export async function clearCurrentUser() {
   state.currentUser = '';
+  setAuthHint(false);
   const { error } = await supabase.auth.signOut({ scope: 'local' });
   if (error) {
     throw error;
@@ -37,18 +54,22 @@ export async function requireAuthenticatedUser() {
     currentUser = await getCurrentUser();
   } catch (error) {
     console.error('Unable to restore Supabase session:', error);
+    setAuthHint(false);
     window.location.replace('login.html');
     return null;
   }
 
   if (!currentUser) {
+    setAuthHint(false);
     window.location.replace('login.html');
     return null;
   }
 
   document.body.classList.remove('auth-pending');
+  setAuthHint(true);
   supabase.auth.onAuthStateChange((_event, session) => {
     if (!session) {
+      setAuthHint(false);
       window.location.replace('login.html');
     }
   });

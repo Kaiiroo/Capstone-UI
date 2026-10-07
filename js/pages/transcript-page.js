@@ -1,4 +1,5 @@
-import { clearButton, fileInput, filePreview, filePreviewImage, filePreviewPlaceholder, logoutBtn, scanButton, scannerForm, sourceInput, transcriptionOutput, authStatus } from '../shared/dom.js';
+import { clearButton, fileInput, filePreview, filePreviewImage, filePreviewPlaceholder, logoutBtn, scanButton, scannerForm, sourceInput, transcriptionOutput, transcriptionProgress, authStatus } from '../shared/dom.js';
+import { createTranscriptionProgress } from '../components/transcription-progress.js';
 import { createPrescription } from '../services/storage.js';
 import { runRoboflowOcr } from '../services/roboflow.js';
 import { bindLogoutButton, requireAuthenticatedUser } from '../core/session.js';
@@ -10,6 +11,7 @@ if (currentUser) {
   bindLogoutButton(logoutBtn);
 
   let filePreviewUrl = '';
+  const progress = createTranscriptionProgress(transcriptionProgress);
 
   function resetFilePreview() {
     if (filePreviewUrl) {
@@ -68,11 +70,17 @@ if (currentUser) {
 
     scanButton.disabled = true;
     scanButton.textContent = 'Transcribing...';
+    progress.start();
     try {
-      transcriptionOutput.value = await runRoboflowOcr(selectedFile);
+      transcriptionOutput.value = await runRoboflowOcr(selectedFile, progress.update);
+      progress.complete();
+      transcriptionOutput.classList.remove('just-filled');
+      void transcriptionOutput.offsetWidth;
+      transcriptionOutput.classList.add('just-filled');
       showToast('Transcription generated');
     } catch (error) {
       console.error(error);
+      progress.fail(error.message || 'Transcription failed');
       transcriptionOutput.value = error.message || 'Unable to generate transcription.';
       showToast('Transcription failed');
     } finally {
