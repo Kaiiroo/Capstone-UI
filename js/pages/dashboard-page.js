@@ -1,5 +1,6 @@
-import { authStatus, logoutBtn, statNotes, statToday, statWeek, welcomeCopy, welcomeTitle } from '../shared/dom.js';
-import { loadRecords } from '../services/storage.js';
+import { authStatus, logoutBtn, needsReviewList, statPending, statToday, statVerified, welcomeCopy, welcomeTitle } from '../shared/dom.js';
+import { loadDashboardSummary } from '../services/storage.js';
+import { escapeHtml } from '../shared/utils.js';
 import { bindLogoutButton, requireAuthenticatedUser } from '../core/session.js';
 
 function animateCount(element, target) {
@@ -16,28 +17,40 @@ function animateCount(element, target) {
   window.requestAnimationFrame(step);
 }
 
-function countSavedSince(records, since) {
-  return records.filter((record) => new Date(record.createdAt) >= since).length;
+function renderNeedsReview(records) {
+  if (!records.length) {
+    needsReviewList.innerHTML = '<li class="review-list-empty">Nothing waiting. All prescriptions are verified.</li>';
+    return;
+  }
+
+  needsReviewList.innerHTML = records
+    .map((record) => `
+      <li>
+        <a href="records.html?open=${encodeURIComponent(record.id)}">
+          <strong>${escapeHtml(record.source)}</strong>
+          <span>${escapeHtml(record.savedAt)}</span>
+        </a>
+      </li>
+    `)
+    .join('');
 }
 
 const currentUser = await requireAuthenticatedUser();
 if (currentUser) {
   authStatus.textContent = `Signed in as ${currentUser.email || 'user'}`;
   welcomeTitle.textContent = `Welcome back, ${currentUser.email || 'user'}`;
-  welcomeCopy.textContent = 'Your saved transcriptions are ready to search, edit, and export from the records archive.';
+  welcomeCopy.textContent = 'Review pending prescriptions, verify their fields, and export verified records.';
   bindLogoutButton(logoutBtn);
 
   try {
-    const records = await loadRecords(currentUser);
-    animateCount(statNotes, records.length);
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-    const sevenDaysAgo = new Date(startOfToday);
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-    animateCount(statWeek, countSavedSince(records, sevenDaysAgo));
-    animateCount(statToday, countSavedSince(records, startOfToday));
+    const summary = await loadDashboardSummary();
+    animateCount(statPending, summary.pendingCount);
+    animateCount(statVerified, summary.verifiedCount);
+    animateCount(statToday, summary.todayCount);
+    renderNeedsReview(summary.oldestPending);
   } catch (error) {
     console.error(error);
-    document.getElementById('welcome-copy').textContent = 'Unable to load prescriptions. Check your Supabase table and RLS policies.';
+    welcomeCopy.textContent = 'Unable to load prescriptions. Check your Supabase table and RLS policies.';
+    needsReviewList.innerHTML = '<li class="review-list-empty">Unable to load prescriptions.</li>';
   }
 }

@@ -1,6 +1,7 @@
 import { clearButton, fileInput, filePreview, filePreviewImage, filePreviewPlaceholder, logoutBtn, scanButton, scannerForm, sourceInput, transcriptionOutput, transcriptionProgress, authStatus } from '../shared/dom.js';
 import { createTranscriptionProgress } from '../components/transcription-progress.js';
 import { createPrescription } from '../services/storage.js';
+import { extractPrescriptionFields } from '../services/extraction.js';
 import { runRoboflowOcr } from '../services/roboflow.js';
 import { bindLogoutButton, requireAuthenticatedUser } from '../core/session.js';
 import { showToast } from '../shared/utils.js';
@@ -104,7 +105,8 @@ if (currentUser) {
 
     const source = sourceInput.value.trim() || 'N/A';
     try {
-      await createPrescription(currentUser, selectedFile, transcriptionOutput.value || 'No transcription generated yet.', source);
+      const transcription = transcriptionOutput.value || 'No transcription generated yet.';
+      await createPrescription(currentUser, selectedFile, transcription, source, extractPrescriptionFields(transcription));
       showToast(`Saved note for ${source}`);
       clearForm();
       window.location.href = 'records.html';

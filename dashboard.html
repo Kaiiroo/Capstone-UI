@@ -55,17 +55,17 @@
               <p class="eyebrow">Today’s workflow</p>
               <h2 id="welcome-title">Welcome to the transcription workspace</h2>
               <p id="welcome-copy">
-                Sign in to upload doctor notes, generate plain-text transcriptions, and save them into the institutional archive.
+                Upload handwritten prescriptions, review the extracted fields, and verify them for export.
               </p>
             </div>
             <div class="hero-metrics">
               <div class="metric-card">
-                <span id="stat-notes">0</span>
-                <small>notes stored</small>
+                <span id="stat-pending">0</span>
+                <small>pending review</small>
               </div>
               <div class="metric-card">
-                <span id="stat-week">0</span>
-                <small>saved this week</small>
+                <span id="stat-verified">0</span>
+                <small>verified</small>
               </div>
               <div class="metric-card">
                 <span id="stat-today">0</span>
@@ -77,22 +77,26 @@
           <div class="grid-2">
             <div class="card">
               <div class="card-header">
-                <h3>Session status</h3>
-                <p>You are now inside the protected workspace for note transcription.</p>
+                <h3>Needs review</h3>
+                <p>Oldest prescriptions still waiting for verification.</p>
               </div>
-              <p class="session-copy">Use the navigation to move between the dashboard, transcription tools, and saved records.</p>
+              <ul id="needs-review-list" class="review-list">
+                <li class="review-list-empty">Loading...</li>
+              </ul>
+              <a class="review-list-all" href="records.html?status=pending">View all pending</a>
             </div>
 
             <div class="card">
               <div class="card-header">
-                <h3>Workflow snapshot</h3>
-                <p>Each note moves through upload, transcription, saving, and later edits.</p>
+                <h3>Workflow</h3>
+                <p>Every prescription is checked by staff before it can be exported.</p>
               </div>
               <ol class="timeline">
-                <li>Upload a doctor note or scan.</li>
-                <li>Generate a plain-language transcription.</li>
-                <li>Save the note into the records database.</li>
-                <li>Open a saved note to correct or update its text.</li>
+                <li>Upload a prescription image.</li>
+                <li>Generate the transcription.</li>
+                <li>Review the extracted medicines and dosage against the image.</li>
+                <li>Verify the record.</li>
+                <li>Export verified records to Excel or CSV.</li>
               </ol>
             </div>
           </div>

@@ -20,6 +20,8 @@ def read_config_value(name):
 class AppHandler(SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', 'http://localhost:8000')
+        # Revalidate every file so edited JS/CSS is never served from a stale browser cache.
+        self.send_header('Cache-Control', 'no-cache')
         super().end_headers()
 
     def do_OPTIONS(self):

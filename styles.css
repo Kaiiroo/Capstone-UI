@@ -1815,3 +1815,67 @@ th:last-child {
     width: 100%;
   }
 }
+
+/* Extracted-field verification */
+.extracted-fields {
+  margin-bottom: 18px;
+}
+
+.extracted-fields-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.items-table {
+  margin-bottom: 10px;
+}
+
+.items-table th,
+.items-table td {
+  padding: 8px 10px;
+}
+
+.items-table input {
+  width: 100%;
+}
+
+/* Dashboard: prescriptions waiting for verification */
+.review-list {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.review-list a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.review-list a:hover {
+  border-color: var(--primary-line);
+  background: var(--primary-soft);
+}
+
+.review-list span,
+.review-list-empty {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.review-list-all {
+  color: var(--primary-strong);
+  font-weight: 600;
+  font-size: 0.9rem;
+}

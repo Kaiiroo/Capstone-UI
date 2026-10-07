@@ -57,13 +57,20 @@
             </div>
             <div class="toolbar">
               <input id="search-input" type="search" placeholder="Search notes..." />
-              <button id="export-records-button" type="button" class="secondary-btn">Export records</button>
+              <select id="status-filter" aria-label="Filter by status">
+                <option value="all">All statuses</option>
+                <option value="Pending review">Pending review</option>
+                <option value="Reviewed">Reviewed</option>
+              </select>
+              <button id="export-records-button" type="button" class="secondary-btn">Export verified (Excel)</button>
+              <button id="export-csv-button" type="button" class="ghost-btn">Plain CSV</button>
             </div>
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr>
                     <th>Source</th>
+                    <th>Status</th>
                     <th>Saved</th>
                     <th>Action</th>
                   </tr>
@@ -106,11 +113,29 @@
         </div>
         <label class="modal-field">
           Transcription text
-          <textarea id="record-modal-transcription" rows="12"></textarea>
+          <textarea id="record-modal-transcription" rows="8"></textarea>
         </label>
+        <div class="extracted-fields">
+          <div class="extracted-fields-header">
+            <span class="modal-label">Extracted fields (check against the image)</span>
+            <button id="record-modal-reextract" class="ghost-btn" type="button">Re-extract from text</button>
+          </div>
+          <label class="modal-field">
+            Diagnosis / stated purpose
+            <input id="record-modal-diagnosis" type="text" placeholder="Only if written on the prescription" />
+          </label>
+          <table class="items-table">
+            <thead>
+              <tr><th>Medicine</th><th>Dosage / instructions</th><th></th></tr>
+            </thead>
+            <tbody id="record-modal-items"></tbody>
+          </table>
+          <button id="record-modal-add-item" class="ghost-btn" type="button">Add medicine</button>
+        </div>
         <div class="modal-actions">
           <button id="record-modal-cancel" class="ghost-btn" type="button">Cancel</button>
-          <button id="record-modal-save" type="button">Save changes</button>
+          <button id="record-modal-save" class="secondary-btn" type="button">Save draft</button>
+          <button id="record-modal-verify" type="button">Verify &amp; save</button>
         </div>
       </div>
     </div>
