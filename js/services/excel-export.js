@@ -13,7 +13,7 @@ const GREEN_TEXT = 'FF15803D';
 
 const COLUMNS = [
   { header: 'No.', key: 'no', width: 6 },
-  { header: 'Source / Patient label', key: 'source', width: 26 },
+  { header: 'Prescribing doctor', key: 'source', width: 26 },
   { header: 'Verified on', key: 'verifiedAt', width: 20 },
   { header: 'Diagnosis / stated purpose', key: 'diagnosis', width: 30 },
   { header: 'Medicine', key: 'medicine', width: 28 },

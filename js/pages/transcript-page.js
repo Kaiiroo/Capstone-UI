@@ -107,7 +107,7 @@ if (currentUser) {
     try {
       const transcription = transcriptionOutput.value || 'No transcription generated yet.';
       await createPrescription(currentUser, selectedFile, transcription, source, extractPrescriptionFields(transcription));
-      showToast(`Saved note for ${source}`);
+      showToast(`Saved prescription from ${source}`);
       clearForm();
       window.location.href = 'records.html';
     } catch (error) {

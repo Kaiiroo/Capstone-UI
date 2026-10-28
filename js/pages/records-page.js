@@ -78,7 +78,7 @@ async function initializeRecordsPage() {
       .map((record) => {
         return `
           <tr>
-            <td>${escapeHtml(record.source || 'Untitled note')}</td>
+            <td>${escapeHtml(record.source || 'Unknown doctor')}</td>
             <td><span class="badge ${record.status === 'Reviewed' ? 'reviewed' : 'pending'}">${escapeHtml(record.status)}</span></td>
             <td>${escapeHtml(record.savedAt)}</td>
             <td>
@@ -129,7 +129,7 @@ async function initializeRecordsPage() {
       return;
     }
 
-    const header = ['Prescription ID', 'Source', 'Verified at', 'Diagnosis', 'Medicine', 'Dosage / instructions', 'Edited by reviewer'];
+    const header = ['Prescription ID', 'Prescribing doctor', 'Verified at', 'Diagnosis', 'Medicine', 'Dosage / instructions', 'Edited by reviewer'];
     const rows = verified.flatMap((record) => {
       const items = record.items.length ? record.items : [{ medicine_name: '', dosage: '', is_edited: false }];
       return items.map((item) => [
