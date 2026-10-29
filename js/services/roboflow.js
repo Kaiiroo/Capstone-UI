@@ -1,4 +1,5 @@
 import { ROBOFLOW_IMAGE_INPUT } from '../config/roboflow.js';
+import { supabase } from '../config/supabase.js';
 
 function fileToBase64(file, onProgress) {
   return new Promise((resolve, reject) => {
@@ -15,11 +16,14 @@ function fileToBase64(file, onProgress) {
 }
 
 // XHR instead of fetch: fetch can't report upload or download progress.
-function postJsonWithProgress(url, body, onProgress) {
+function postJsonWithProgress(url, body, accessToken, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url);
     xhr.setRequestHeader('Content-Type', 'application/json');
+    if (accessToken) {
+      xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+    }
 
     xhr.upload.addEventListener('progress', (event) => {
       if (event.lengthComputable) {
@@ -100,6 +104,7 @@ export async function runRoboflowOcr(file, onProgress = () => {}) {
     base64SizeBytes: image.length,
   });
 
+  const { data: sessionData } = await supabase.auth.getSession();
   const requestStartedAt = performance.now();
   try {
     const response = await postJsonWithProgress(
@@ -109,6 +114,7 @@ export async function runRoboflowOcr(file, onProgress = () => {}) {
           [ROBOFLOW_IMAGE_INPUT]: { type: 'base64', value: image },
         },
       }),
+      sessionData.session?.access_token,
       onProgress,
     );
 
