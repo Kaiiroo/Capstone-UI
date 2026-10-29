@@ -17,9 +17,12 @@
 `python -m http.server` will not work: transcription needs the `/api/roboflow`
 endpoint in `server.py`. Restart the server after editing `server.py`.
 
-## Deploy to Cloudflare Workers
+## Deploy to Cloudflare Pages
 
-Requires Node.js and a Cloudflare account.
+Live site: https://guadahealth.pages.dev
+
+Requires Node.js and access to the Cloudflare account that owns the
+`guadahealth` Pages project.
 
 1. Sign in (opens a browser):
 
@@ -27,29 +30,30 @@ Requires Node.js and a Cloudflare account.
    npx wrangler login
    ```
 
-2. Store the Roboflow key as a secret. Type the key when prompted; do not put it
-   on the command line:
+2. Build and deploy:
 
    ```powershell
-   npx wrangler secret put ROBOFLOW_API_KEY
+   node scripts/build.mjs
+   npx wrangler pages deploy --branch main
    ```
 
-3. Deploy:
+`scripts/build.mjs` copies only the public site (HTML, `styles.css`, `assets/`,
+`js/`) into `dist/`, so `.env`, `server.py`, `supabase/` and
+`Prescription-Images/` are never uploaded. `functions/api/roboflow.js` relays
+transcription requests to Roboflow and only accepts users signed in to the app.
 
-   ```powershell
-   npx wrangler deploy
-   ```
+The Roboflow key is stored as a Pages secret. To change it, run this and type the
+key when prompted (never put it on the command line):
 
-4. In Supabase, go to Authentication > URL Configuration and add the deployed
-   `https://guadahealth.<your-subdomain>.workers.dev` address.
+```powershell
+npx wrangler pages secret put ROBOFLOW_API_KEY --project-name guadahealth
+```
 
-`src/worker.js` serves the site and relays transcription requests to Roboflow.
-It only accepts requests from users signed in to the app. `.assetsignore` keeps
-private files (`.env`, `server.py`, `supabase/`, `Prescription-Images/`) off the
-website.
+In Supabase, Authentication > URL Configuration must list
+`https://guadahealth.pages.dev`.
 
 To test the Cloudflare version locally, put the same `ROBOFLOW_API_KEY=...` line
-in a `.dev.vars` file (git-ignored) and run `npx wrangler dev`.
+in a `.dev.vars` file (git-ignored), build, and run `npx wrangler pages dev`.
 
 ## Database
 

@@ -1,22 +1,14 @@
 {
-  // Cloudflare Worker config. Deploy with: npx wrangler deploy
+  // Cloudflare Pages config. Deploy with:
+  //   node scripts/build.mjs
+  //   npx wrangler pages deploy
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "guadahealth",
-  "main": "src/worker.js",
+  "pages_build_output_dir": "./dist",
   "compatibility_date": "2026-10-01",
-  "observability": { "enabled": true },
-  "workers_dev": true,
-  // No extra per-version public URLs for an app that handles patient data.
-  "preview_urls": false,
-  "assets": {
-    // The project root is the site; .assetsignore keeps private files out of it.
-    "directory": ".",
-    "binding": "ASSETS",
-    "run_worker_first": ["/api/*"]
-  },
   "vars": {
     // Public values only. The Roboflow API key is a secret:
-    //   npx wrangler secret put ROBOFLOW_API_KEY
+    //   npx wrangler pages secret put ROBOFLOW_API_KEY
     "ROBOFLOW_WORKSPACE": "advinculas-workspace",
     "ROBOFLOW_WORKFLOW": "prescription-handwriting-ocr-1787103424083",
     "SUPABASE_URL": "https://qkjspjwvirkpjkslddux.supabase.co",

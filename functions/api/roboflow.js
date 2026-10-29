@@ -1,4 +1,4 @@
-// Cloudflare Worker: serves the static site and relays /api/roboflow to the Roboflow workflow.
+// Cloudflare Pages Function: relays POST /api/roboflow to the Roboflow workflow.
 // Same job as server.py, which remains for running the app locally with Python.
 
 const ROBOFLOW_TIMEOUT_MS = 90_000;
@@ -23,7 +23,7 @@ async function isSignedIn(request, env) {
   return response.ok;
 }
 
-async function relayToRoboflow(request, env) {
+export async function onRequestPost({ request, env }) {
   if (!env.ROBOFLOW_API_KEY || !env.ROBOFLOW_WORKSPACE || !env.ROBOFLOW_WORKFLOW) {
     return json(500, { error: 'Roboflow is not configured. Set the ROBOFLOW_API_KEY secret in Cloudflare.' });
   }
@@ -69,21 +69,6 @@ async function relayToRoboflow(request, env) {
   }
 }
 
-export default {
-  async fetch(request, env) {
-    const { pathname } = new URL(request.url);
-
-    if (pathname === '/api/roboflow') {
-      if (request.method !== 'POST') {
-        return json(405, { error: 'Use POST for transcription requests.' });
-      }
-      return relayToRoboflow(request, env);
-    }
-
-    if (pathname.startsWith('/api/')) {
-      return json(404, { error: 'Not found.' });
-    }
-
-    return env.ASSETS.fetch(request);
-  },
-};
+export function onRequest() {
+  return json(405, { error: 'Use POST for transcription requests.' });
+}
