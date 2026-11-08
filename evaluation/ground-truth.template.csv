@@ -1,0 +1,13 @@
+image,ground_truth_text,medicines,dosages,diagnosis
+EXAMPLE-1.jpg,"SAMPLE CLINIC
+Patient's Name: [redacted]
+Date: 3/11/2025
+Dx: Acute tonsillitis
+Rx
+Amoxicillin 500 mg
+#21 caps
+Sg.: 3x a day for 7 days
+Paracetamol 500 mg
+#10 tabs
+Sg.: every 4 hours as needed for fever
+Lic. No. [redacted]",Amoxicillin; Paracetamol,500 mg; 500 mg,Acute tonsillitis

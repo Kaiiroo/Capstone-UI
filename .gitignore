@@ -4,3 +4,17 @@ __pycache__/
 .wrangler/
 node_modules/
 dist/
+
+# Evaluation data: prescription images, the typed ground truth, and OCR outputs contain patient information.
+evaluation/test-set/
+evaluation/results/
+evaluation/results-*/
+evaluation/ground-truth.csv
+
+# Prescription photos and local datasets (patient information).
+Prescription-Images/
+OCR/
+
+# Reference documents and the paper are kept outside the repository.
+*.pdf
+*.docx

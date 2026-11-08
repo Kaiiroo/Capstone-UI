@@ -31,7 +31,8 @@ function formatDateTime(value) {
 function buildRows(records) {
   const rows = [];
   records.forEach((record, recordIndex) => {
-    const items = record.items.length ? record.items : [{ medicine_name: '', dosage: '', is_edited: false }];
+    // Verified with "No medicine on this prescription" checked.
+    const items = record.items.length ? record.items : [{ medicine_name: 'None prescribed', dosage: '', is_edited: false, none: true }];
     items.forEach((item, itemIndex) => {
       rows.push({
         group: recordIndex,
@@ -41,7 +42,7 @@ function buildRows(records) {
         diagnosis: record.diagnosis || '',
         medicine: item.medicine_name,
         dosage: item.dosage,
-        edited: item.medicine_name || item.dosage ? (item.is_edited ? 'Edited' : 'As recognized') : '',
+        edited: !item.none && (item.medicine_name || item.dosage) ? (item.is_edited ? 'Edited' : 'As recognized') : '',
       });
     });
   });
@@ -131,7 +132,8 @@ function addSummarySheet(workbook, records, rows, exportedBy) {
   title.alignment = { vertical: 'middle', indent: 1 };
   sheet.getRow(1).height = 32;
 
-  const medicineRows = rows.filter((row) => row.medicine || row.dosage);
+  // Rows with an edit status are real medicine entries ("None prescribed" rows have none).
+  const medicineRows = rows.filter((row) => row.edited);
   const editedRows = medicineRows.filter((row) => row.edited === 'Edited').length;
   const editRate = medicineRows.length ? editedRows / medicineRows.length : 0;
 

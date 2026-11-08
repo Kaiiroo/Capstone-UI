@@ -20,16 +20,27 @@ import {
   exportRecordsButton,
   exportCsvButton,
   searchInput,
+  recordsPager,
+  medicineLibraryList,
+  recordModalNoMedicine,
+  recordModalItemsSection,
 } from '../shared/dom.js';
 import { state } from '../core/state.js';
 import { loadRecords, logCsvExport, saveRecord } from '../services/storage.js';
 import { downloadVerifiedWorkbook } from '../services/excel-export.js';
 import { extractPrescriptionFields } from '../services/extraction.js';
+import { MEDICINE_LIBRARY, autoCorrectMedicine, genericOf, suggestMedicine } from '../services/medicine-library.js';
+import { confirmDialog } from '../components/confirm-dialog.js';
+import { openImageViewer } from '../components/image-viewer.js';
 import { bindLogoutButton, requireAuthenticatedUser } from '../core/session.js';
-import { escapeHtml, showToast } from '../shared/utils.js';
+import { escapeHtml, showFlashToast, showToast } from '../shared/utils.js';
+
+const PAGE_SIZE = 10;
 
 bindLogoutButton(logoutBtn);
 authStatus.textContent = 'Checking session...';
+showFlashToast();
+medicineLibraryList.innerHTML = MEDICINE_LIBRARY.map((name) => `<option value="${escapeHtml(name)}"></option>`).join('');
 
 async function initializeRecordsPage() {
   const currentUser = await requireAuthenticatedUser();
@@ -53,6 +64,31 @@ async function initializeRecordsPage() {
     `;
   }
 
+  let currentPage = 1;
+
+  function renderPager(totalRecords, pageCount) {
+    recordsPager.hidden = !totalRecords;
+    if (!totalRecords) {
+      recordsPager.innerHTML = '';
+      return;
+    }
+
+    const first = (currentPage - 1) * PAGE_SIZE + 1;
+    const last = Math.min(currentPage * PAGE_SIZE, totalRecords);
+    const pageButtons = Array.from({ length: pageCount }, (_, index) => index + 1)
+      .map((page) => `<button class="ghost-btn pager-page${page === currentPage ? ' active' : ''}" type="button" data-page="${page}"${page === currentPage ? ' aria-current="page"' : ''}>${page}</button>`)
+      .join('');
+    recordsPager.innerHTML = `
+      <span class="pager-summary">Showing ${first}-${last} of ${totalRecords}</span>
+      ${pageCount > 1 ? `
+        <div class="pager-buttons">
+          <button class="ghost-btn" type="button" data-page="${currentPage - 1}"${currentPage === 1 ? ' disabled' : ''}>Previous</button>
+          ${pageButtons}
+          <button class="ghost-btn" type="button" data-page="${currentPage + 1}"${currentPage === pageCount ? ' disabled' : ''}>Next</button>
+        </div>` : ''}
+    `;
+  }
+
   function renderRecords() {
     if (!recordsLoaded) {
       return;
@@ -60,12 +96,16 @@ async function initializeRecordsPage() {
 
     const query = searchInput.value.trim().toLowerCase();
     const filter = statusFilter.value;
-    const visibleRecords = state.records.filter((record) => {
+    const matchingRecords = state.records.filter((record) => {
       const matchesStatus = filter === 'all' || record.status === filter;
       return matchesStatus && record.source.toLowerCase().includes(query);
     });
 
-    if (!visibleRecords.length) {
+    const pageCount = Math.max(1, Math.ceil(matchingRecords.length / PAGE_SIZE));
+    currentPage = Math.min(currentPage, pageCount);
+    renderPager(matchingRecords.length, pageCount);
+
+    if (!matchingRecords.length) {
       recordsTableBody.innerHTML = `
         <tr>
           <td colspan="4">No matching notes found.</td>
@@ -74,6 +114,7 @@ async function initializeRecordsPage() {
       return;
     }
 
+    const visibleRecords = matchingRecords.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
     recordsTableBody.innerHTML = visibleRecords
       .map((record) => {
         return `
@@ -131,7 +172,8 @@ async function initializeRecordsPage() {
 
     const header = ['Prescription ID', 'Prescribing doctor', 'Verified at', 'Diagnosis', 'Medicine', 'Dosage / instructions', 'Edited by reviewer'];
     const rows = verified.flatMap((record) => {
-      const items = record.items.length ? record.items : [{ medicine_name: '', dosage: '', is_edited: false }];
+      // Verified with "No medicine on this prescription" checked.
+      const items = record.items.length ? record.items : [{ medicine_name: 'None prescribed', dosage: '', is_edited: false, none: true }];
       return items.map((item) => [
         record.id,
         record.source || 'N/A',
@@ -139,7 +181,7 @@ async function initializeRecordsPage() {
         record.diagnosis,
         item.medicine_name,
         item.dosage,
-        item.is_edited ? 'Yes' : 'No',
+        item.none ? '' : (item.is_edited ? 'Yes' : 'No'),
       ]);
     });
     const csv = [header, ...rows].map((row) => row.map(csvValue).join(',')).join('\r\n');
@@ -163,11 +205,84 @@ async function initializeRecordsPage() {
     row.dataset.confidence = item.confidence_score ?? '';
     row.dataset.wasEdited = item.is_edited || isNew ? '1' : '';
     row.innerHTML = `
-      <td><input class="item-medicine" type="text" value="${escapeHtml(item.medicine_name)}" aria-label="Medicine" /></td>
+      <td>
+        <input class="item-medicine" type="text" list="medicine-library" value="${escapeHtml(item.medicine_name)}" aria-label="Medicine" />
+        <div class="medicine-hint" aria-live="polite"></div>
+      </td>
       <td><input class="item-dosage" type="text" value="${escapeHtml(item.dosage)}" aria-label="Dosage" /></td>
       <td><button class="ghost-btn remove-item-btn" type="button" aria-label="Remove medicine">Remove</button></td>
     `;
     recordModalItems.append(row);
+    updateMedicineHint(row);
+  }
+
+  // Under each medicine: what an automatic correction replaced (with Undo), or else "Did you mean ...?"
+  // when the name is close to, but not in, the medicine library.
+  function updateMedicineHint(row) {
+    const hint = row.querySelector('.medicine-hint');
+    const name = row.querySelector('.item-medicine').value;
+    // Brand names show their generic name: "Brand name of Paracetamol".
+    const generic = genericOf(name);
+    const genericNote = generic ? ` Brand name of ${escapeHtml(generic)}.` : '';
+    hint.classList.toggle('is-corrected', Boolean(row.dataset.autoCorrectedFrom));
+    hint.classList.toggle('is-info', !row.dataset.autoCorrectedFrom && Boolean(generic));
+    if (row.dataset.autoCorrectedFrom) {
+      hint.innerHTML = `Corrected from "${escapeHtml(row.dataset.autoCorrectedFrom)}" using the medicine library.${genericNote} <button class="hint-apply-btn hint-undo-btn" type="button">Undo</button>`;
+      return;
+    }
+
+    const suggestion = row.dataset.autoCorrectUndone ? '' : suggestMedicine(name);
+    if (suggestion) {
+      const suggestionGeneric = genericOf(suggestion);
+      hint.innerHTML = `Did you mean <button class="hint-apply-btn" type="button" data-suggestion="${escapeHtml(suggestion)}">${escapeHtml(suggestion)}</button>${suggestionGeneric ? ` (${escapeHtml(suggestionGeneric)})` : ''}?`;
+      return;
+    }
+    hint.innerHTML = genericNote.trim();
+  }
+
+  // Replaces recognized medicine names that are one or two letters from a single library name.
+  // Only names not yet changed by a reviewer are corrected; the reviewer sees each change and can undo it.
+  function applyAutoCorrections() {
+    let count = 0;
+    recordModalItems.querySelectorAll('tr').forEach((row) => {
+      if (row.dataset.wasEdited) {
+        return;
+      }
+      const input = row.querySelector('.item-medicine');
+      const corrected = autoCorrectMedicine(input.value);
+      if (corrected) {
+        row.dataset.autoCorrectedFrom = input.value;
+        input.value = corrected;
+        updateMedicineHint(row);
+        count += 1;
+      }
+    });
+    if (count) {
+      showToast(`Corrected ${count} medicine name${count === 1 ? '' : 's'} using the medicine library. Check them against the image.`, 4000);
+    }
+    return count;
+  }
+
+  // Values in the editor, compared on save to find out whether anything changed.
+  function readModalSnapshot() {
+    return JSON.stringify({
+      noMedicine: recordModalNoMedicine.checked,
+      source: recordModalSource.value.trim(),
+      transcription: recordModalTranscription.value.trim(),
+      diagnosis: recordModalDiagnosis.value.trim(),
+      items: Array.from(recordModalItems.querySelectorAll('tr')).map((row) => [
+        row.querySelector('.item-medicine').value.trim(),
+        row.querySelector('.item-dosage').value.trim(),
+      ]),
+    });
+  }
+
+  let openedSnapshot = '';
+
+  // "No medicine on this prescription": hides the medicine list, which is then saved empty.
+  function setNoMedicine(checked) {
+    recordModalNoMedicine.checked = checked;
+    recordModalItemsSection.hidden = checked;
   }
 
   function readItemRows() {
@@ -205,10 +320,18 @@ async function initializeRecordsPage() {
     recordModalDiagnosis.value = record.diagnosis || '';
     recordModalItems.innerHTML = '';
     record.items.forEach((item) => addItemRow(item));
+    // A verified record saved without medicines was marked as having none.
+    setNoMedicine(record.status === 'Reviewed' && !record.items.length);
     recordModalVerify.textContent = record.status === 'Reviewed' ? 'Save & keep verified' : 'Verify & save';
+    // Taken before corrections, so a corrected name counts as a change when saving.
+    openedSnapshot = readModalSnapshot();
     recordModal.classList.remove('hidden');
     recordModal.setAttribute('aria-hidden', 'false');
     recordModalTranscription.focus();
+    // Verified records keep the names the reviewer approved.
+    if (record.status !== 'Reviewed') {
+      applyAutoCorrections();
+    }
   }
 
   function closeRecordModal() {
@@ -226,6 +349,7 @@ async function initializeRecordsPage() {
     recordModalTranscription.value = '';
     recordModalDiagnosis.value = '';
     recordModalItems.innerHTML = '';
+    setNoMedicine(false);
   }
 
   async function saveActiveRecord(verify) {
@@ -238,9 +362,10 @@ async function initializeRecordsPage() {
       return null;
     }
 
-    const items = readItemRows();
-    if (verify && !items.some((item) => item.medicine_name.trim())) {
-      throw new Error('Add at least one medicine before verifying.');
+    // Medicine rows hidden by "No medicine on this prescription" are kept on screen until closing, but not saved.
+    const items = recordModalNoMedicine.checked ? [] : readItemRows();
+    if (verify && !recordModalNoMedicine.checked && !items.some((item) => item.medicine_name.trim())) {
+      throw new Error('Add at least one medicine, or check "No medicine on this prescription", before verifying.');
     }
 
     const updatedRecord = await saveRecord(currentUser, record.id, {
@@ -265,6 +390,19 @@ async function initializeRecordsPage() {
     openRecordModal(button.dataset.id);
   });
 
+  function viewRecordImage() {
+    const record = state.records.find((entry) => entry.id === state.activeRecordId);
+    openImageViewer(recordModalImage.src, `Prescription from ${record?.source || 'unknown doctor'}`);
+  }
+
+  recordModalImage.addEventListener('click', viewRecordImage);
+  recordModalImage.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      viewRecordImage();
+    }
+  });
+
   recordModalClose.addEventListener('click', closeRecordModal);
   recordModalCancel.addEventListener('click', closeRecordModal);
   recordModal.addEventListener('click', (event) => {
@@ -273,7 +411,35 @@ async function initializeRecordsPage() {
     }
   });
 
+  // Saving with no changes asks first, so a record is not marked verified without being checked.
+  async function confirmUnchangedSave(verify) {
+    if (readModalSnapshot() !== openedSnapshot) {
+      return true;
+    }
+
+    const record = state.records.find((entry) => entry.id === state.activeRecordId);
+    if (verify && record?.status !== 'Reviewed') {
+      return confirmDialog({
+        title: 'Verify without changes?',
+        message: 'You have not changed anything. Verify only if you checked every medicine, dosage, and the diagnosis against the prescription image.',
+        confirmLabel: 'Yes, verify as is',
+      });
+    }
+
+    return confirmDialog({
+      title: 'No changes to save',
+      message: 'You have not changed anything in this record. Save it anyway?',
+      confirmLabel: 'Save anyway',
+    });
+  }
+
   async function handleSave(verify) {
+    if (!(await confirmUnchangedSave(verify))) {
+      return;
+    }
+
+    recordModalSave.disabled = true;
+    recordModalVerify.disabled = true;
     try {
       const record = await saveActiveRecord(verify);
       if (!record) {
@@ -286,14 +452,40 @@ async function initializeRecordsPage() {
     } catch (error) {
       console.error(error);
       showToast(error.message || 'Unable to update prescription');
+    } finally {
+      recordModalSave.disabled = false;
+      recordModalVerify.disabled = false;
     }
   }
 
   recordModalSave.addEventListener('click', () => handleSave(false));
   recordModalVerify.addEventListener('click', () => handleSave(true));
   recordModalAddItem.addEventListener('click', () => addItemRow(undefined, true));
+  recordModalNoMedicine.addEventListener('change', () => setNoMedicine(recordModalNoMedicine.checked));
   recordModalItems.addEventListener('click', (event) => {
+    const row = event.target.closest('tr');
+    if (event.target.closest('.hint-undo-btn')) {
+      row.querySelector('.item-medicine').value = row.dataset.autoCorrectedFrom;
+      delete row.dataset.autoCorrectedFrom;
+      row.dataset.autoCorrectUndone = '1';
+      updateMedicineHint(row);
+      return;
+    }
+    const applyButton = event.target.closest('.hint-apply-btn');
+    if (applyButton) {
+      row.querySelector('.item-medicine').value = applyButton.dataset.suggestion;
+      updateMedicineHint(row);
+      return;
+    }
     event.target.closest('.remove-item-btn')?.closest('tr').remove();
+  });
+  recordModalItems.addEventListener('input', (event) => {
+    if (event.target.classList.contains('item-medicine')) {
+      // Typing over a corrected name replaces the correction with what the reviewer wrote.
+      const row = event.target.closest('tr');
+      delete row.dataset.autoCorrectedFrom;
+      updateMedicineHint(row);
+    }
   });
   recordModalReextract.addEventListener('click', () => {
     const fields = extractPrescriptionFields(recordModalTranscription.value);
@@ -302,7 +494,9 @@ async function initializeRecordsPage() {
     if (fields.diagnosis && !recordModalDiagnosis.value.trim()) {
       recordModalDiagnosis.value = fields.diagnosis;
     }
-    showToast(`Extracted ${fields.items.length} medicine${fields.items.length === 1 ? '' : 's'}`);
+    if (!applyAutoCorrections()) {
+      showToast(`Extracted ${fields.items.length} medicine${fields.items.length === 1 ? '' : 's'}`);
+    }
   });
 
   document.addEventListener('keydown', (event) => {
@@ -317,8 +511,22 @@ async function initializeRecordsPage() {
     statusFilter.value = 'Pending review';
   }
 
-  searchInput.addEventListener('input', renderRecords);
-  statusFilter.addEventListener('change', renderRecords);
+  function showFirstPage() {
+    currentPage = 1;
+    renderRecords();
+  }
+
+  searchInput.addEventListener('input', showFirstPage);
+  statusFilter.addEventListener('change', showFirstPage);
+  recordsPager.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-page]');
+    if (!button || button.disabled) {
+      return;
+    }
+    currentPage = Number(button.dataset.page);
+    renderRecords();
+    recordsTableBody.closest('.card').scrollIntoView({ block: 'start', behavior: 'smooth' });
+  });
   exportRecordsButton.addEventListener('click', exportExcel);
   exportCsvButton.addEventListener('click', exportCsv);
 

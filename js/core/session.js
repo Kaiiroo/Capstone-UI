@@ -1,4 +1,5 @@
 import { supabase } from '../config/supabase.js';
+import { PRIVACY_PAGE, hasAcceptedPrivacy } from './privacy.js';
 import { state } from './state.js';
 
 const SESSION_CHECK_TIMEOUT_MS = 8000;
@@ -48,7 +49,9 @@ export async function clearCurrentUser() {
   }
 }
 
-export async function requireAuthenticatedUser() {
+// Signed-in users who have not agreed to the Data Privacy notice are sent to the privacy page first.
+// The privacy page itself passes { requirePrivacyConsent: false }.
+export async function requireAuthenticatedUser({ requirePrivacyConsent = true } = {}) {
   let currentUser;
   try {
     currentUser = await getCurrentUser();
@@ -62,6 +65,12 @@ export async function requireAuthenticatedUser() {
   if (!currentUser) {
     setAuthHint(false);
     window.location.replace('login.html');
+    return null;
+  }
+
+  if (requirePrivacyConsent && !hasAcceptedPrivacy(currentUser)) {
+    const here = window.location.pathname.split('/').pop() + window.location.search;
+    window.location.replace(`${PRIVACY_PAGE}?next=${encodeURIComponent(here)}`);
     return null;
   }
 

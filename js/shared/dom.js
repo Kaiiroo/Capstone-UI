@@ -48,3 +48,7 @@ export const recordModalItems = document.getElementById('record-modal-items');
 export const recordModalAddItem = document.getElementById('record-modal-add-item');
 export const recordModalReextract = document.getElementById('record-modal-reextract');
 export const recordModalVerify = document.getElementById('record-modal-verify');
+export const recordsPager = document.getElementById('records-pager');
+export const recordModalNoMedicine = document.getElementById('record-modal-no-medicine');
+export const recordModalItemsSection = document.getElementById('record-modal-items-section');
+export const medicineLibraryList = document.getElementById('medicine-library');

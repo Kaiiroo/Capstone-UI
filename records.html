@@ -32,6 +32,7 @@
           <a class="nav-btn" href="dashboard.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</a>
           <a class="nav-btn" href="transcript.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>Transcribe</a>
           <a class="nav-btn active" href="records.html" aria-current="page"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></svg>Records</a>
+          <a class="nav-btn" href="medicines.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-45 12 12)"/><path d="M8.5 8.5l7 7"/></svg>Medicine Library</a>
         </nav>
 
         <div class="sidebar-card">
@@ -75,9 +76,14 @@
                     <th>Action</th>
                   </tr>
                 </thead>
-                <tbody id="records-table-body"></tbody>
+                <tbody id="records-table-body">
+                  <tr class="loading-row">
+                    <td colspan="4"><span class="loading-spinner" aria-hidden="true"></span>Loading records...</td>
+                  </tr>
+                </tbody>
               </table>
             </div>
+            <nav id="records-pager" class="pager" aria-label="Records pages" hidden></nav>
           </section>
         </main>
       </div>
@@ -105,10 +111,10 @@
           </div>
         </div>
         <div class="record-image-section">
-          <span class="modal-label">Uploaded prescription</span>
+          <span class="modal-label">Uploaded prescription <small class="image-enlarge-note">Click the image to view it full size.</small></span>
           <div class="record-image-preview">
             <span id="record-modal-image-placeholder">Image unavailable for this record.</span>
-            <img id="record-modal-image" alt="Uploaded prescription" hidden />
+            <img id="record-modal-image" alt="Uploaded prescription" tabindex="0" role="button" title="View full size" hidden />
           </div>
         </div>
         <label class="modal-field">
@@ -124,13 +130,20 @@
             Diagnosis / stated purpose
             <input id="record-modal-diagnosis" type="text" placeholder="Only if written on the prescription" />
           </label>
-          <table class="items-table">
-            <thead>
-              <tr><th>Medicine</th><th>Dosage / instructions</th><th></th></tr>
-            </thead>
-            <tbody id="record-modal-items"></tbody>
-          </table>
-          <button id="record-modal-add-item" class="ghost-btn" type="button">Add medicine</button>
+          <label class="no-medicine-option">
+            <input id="record-modal-no-medicine" type="checkbox" />
+            <span>No medicine on this prescription <small>(e.g. a medical certificate or laboratory request)</small></span>
+          </label>
+          <div id="record-modal-items-section">
+            <table class="items-table">
+              <thead>
+                <tr><th>Medicine</th><th>Dosage / instructions</th><th></th></tr>
+              </thead>
+              <tbody id="record-modal-items"></tbody>
+            </table>
+            <button id="record-modal-add-item" class="ghost-btn" type="button">Add medicine</button>
+          </div>
+          <datalist id="medicine-library"></datalist>
         </div>
         <div class="modal-actions">
           <button id="record-modal-cancel" class="ghost-btn" type="button">Cancel</button>

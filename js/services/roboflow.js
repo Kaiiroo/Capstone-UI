@@ -1,5 +1,6 @@
 import { ROBOFLOW_IMAGE_INPUT } from '../config/roboflow.js';
 import { supabase } from '../config/supabase.js';
+import { findOcrText } from './ocr-response.js';
 
 function fileToBase64(file, onProgress) {
   return new Promise((resolve, reject) => {
@@ -54,43 +55,6 @@ function postJsonWithProgress(url, body, accessToken, onProgress) {
     xhr.addEventListener('abort', () => reject(new Error('Transcription request was cancelled.')));
     xhr.send(body);
   });
-}
-
-function findOcrText(value) {
-  if (typeof value === 'string' && value.trim()) {
-    const trimmedValue = value.trim();
-    if (trimmedValue.startsWith('{') || trimmedValue.startsWith('[')) {
-      try {
-        const parsedValue = JSON.parse(trimmedValue);
-        return findOcrText(parsedValue);
-      } catch {
-        // Keep non-JSON text unchanged.
-      }
-    }
-
-    return trimmedValue;
-  }
-
-  if (!value || typeof value !== 'object') {
-    return '';
-  }
-
-  const preferredKeys = ['text', 'ocr_text', 'transcription', 'transcript', 'recognized_text'];
-  for (const key of preferredKeys) {
-    const text = findOcrText(value[key]);
-    if (text) {
-      return text;
-    }
-  }
-
-  for (const nestedValue of Object.values(value)) {
-    const text = findOcrText(nestedValue);
-    if (text) {
-      return text;
-    }
-  }
-
-  return '';
 }
 
 export async function runRoboflowOcr(file, onProgress = () => {}) {

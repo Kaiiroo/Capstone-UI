@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GuadaHealth Data Privacy Notice</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="auth-pending">
+    <main class="privacy-page">
+      <article class="privacy-card" aria-labelledby="privacy-title">
+        <header class="privacy-card-header">
+          <div class="brand">
+            <img class="brand-icon" src="assets/guadahealth-logo.png" alt="GuadaHealth logo" />
+            <div>
+              <h2><span class="brand-guada">Guada</span><span class="brand-health">Health</span></h2>
+              <p id="privacy-signed-in">Checking your account...</p>
+            </div>
+          </div>
+          <p class="eyebrow">Required before using the system</p>
+          <h1 id="privacy-title">Data Privacy Notice</h1>
+          <p class="privacy-lead">
+            PRESCRIBE-AID handles prescriptions, which contain patients' health information. Under the Data Privacy
+            Act of 2012 (Republic Act No. 10173), health information is <strong>sensitive personal information</strong>.
+            Every user must read and agree to this notice before using the system.
+          </p>
+        </header>
+
+        <section class="privacy-assurance">
+          <h2>How your data and your patients' data are protected</h2>
+          <ul>
+            <li><b>Only authorized staff.</b> Records can be opened only by signed-in GuadaHealth accounts. The database checks every request, so no one can view records without signing in.</li>
+            <li><b>Encrypted.</b> Data is sent over an encrypted (HTTPS) connection and stored in a secured cloud database (Supabase).</li>
+            <li><b>Every action is recorded.</b> Uploads, edits, verifications, and exports are logged with the account and time, so any access can be traced.</li>
+            <li><b>Used only for record keeping.</b> Information is used to transcribe, verify, and keep prescription records. It is never sold or shared for marketing.</li>
+          </ul>
+        </section>
+
+        <section class="privacy-section">
+          <h2>What is collected and who processes it</h2>
+          <ul>
+            <li><b>Collected:</b> prescription images, their recognized text, the medicines, dosages, and diagnoses written on them, the prescribing doctor's name, and your account email.</li>
+            <li><b>Processed by:</b> Supabase (sign-in and storage), Roboflow (runs the text recognition), and Anthropic (its Claude model reads the text from uploaded images). Images are sent to Roboflow and Anthropic only to read the text.</li>
+            <li><b>Kept:</b> for as long as GuadaHealth needs the records, following its records retention policy.</li>
+          </ul>
+        </section>
+
+        <section class="privacy-section">
+          <h2>Your rights under the Data Privacy Act</h2>
+          <p>
+            You and your patients have the right to be informed, to access, to correct, to object, to have data erased
+            or blocked, to data portability, and to be indemnified for damages, and the right to file a complaint with
+            the National Privacy Commission. To use these rights, contact <span id="privacy-dpo-contact">GuadaHealth's
+            Data Protection Officer through the clinic administration</span>.
+          </p>
+        </section>
+
+        <section class="privacy-section">
+          <h2>Your responsibilities as a user</h2>
+          <p>
+            Upload only prescriptions you are authorized to handle, and do not share, download, or copy patient
+            information outside of your work.
+          </p>
+        </section>
+
+        <form id="privacy-form" class="privacy-agreement">
+          <label class="privacy-consent-check">
+            <input id="privacy-consent-checkbox" type="checkbox" required />
+            <span>I have read and understood this notice. I consent to the processing of personal information described above, in accordance with the Data Privacy Act of 2012.</span>
+          </label>
+          <p id="privacy-declined" class="privacy-consent-declined" role="alert" hidden>
+            You cannot use PRESCRIBE-AID without agreeing. You have been signed out.
+          </p>
+          <div class="privacy-actions">
+            <button id="privacy-decline" class="ghost-btn" type="button">I do not agree (sign out)</button>
+            <button id="privacy-accept" type="submit" disabled>I agree, continue</button>
+          </div>
+        </form>
+      </article>
+    </main>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+    <script>
+      window.setTimeout(() => {
+        if (document.body.classList.contains('auth-pending')) {
+          window.location.replace('login.html');
+        }
+      }, 10000);
+    </script>
+    <script type="module" src="js/pages/privacy-page.js"></script>
+  </body>
+</html>

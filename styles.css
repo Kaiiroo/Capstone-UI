@@ -104,6 +104,14 @@ body.auth-pending::before {
   animation: pulse-text 1.4s ease-in-out infinite;
 }
 
+body.privacy-consent-required {
+  overflow: hidden;
+}
+
+body.privacy-consent-required > *:not(.privacy-consent-modal) {
+  pointer-events: none;
+}
+
 @keyframes pulse-text {
   50% {
     opacity: 0.45;
@@ -1567,6 +1575,131 @@ th:last-child {
   flex: 0 0 auto;
 }
 
+.privacy-consent-modal {
+  z-index: 60;
+}
+
+/* A single column, unlike the two-column record editor that shares .modal-panel. */
+.privacy-consent-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(640px, 100%);
+  padding: clamp(24px, 4vw, 36px);
+}
+
+.privacy-consent-content {
+  max-height: min(46vh, 420px);
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.privacy-details {
+  padding: 12px 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+}
+
+.privacy-details summary {
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.privacy-details ul,
+.privacy-details p {
+  margin: 10px 0 0;
+}
+
+.privacy-details ul {
+  padding-left: 20px;
+}
+
+.privacy-details li + li {
+  margin-top: 6px;
+}
+
+.privacy-consent-declined {
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.privacy-consent-declined[hidden] {
+  display: none;
+}
+
+.privacy-consent-panel .modal-header {
+  margin-bottom: 0;
+}
+
+.privacy-consent-content {
+  display: grid;
+  gap: 16px;
+  color: var(--text-2);
+}
+
+.privacy-consent-content p {
+  line-height: 1.65;
+}
+
+.privacy-assurance {
+  padding: 16px 18px;
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-line);
+  border-radius: var(--radius-md);
+}
+
+.privacy-assurance strong {
+  color: var(--primary-strong);
+}
+
+.privacy-assurance ul {
+  margin: 10px 0 0;
+  padding-left: 20px;
+}
+
+.privacy-assurance li + li {
+  margin-top: 7px;
+}
+
+.privacy-note {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.privacy-consent-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  color: var(--text);
+  font-weight: 600;
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.privacy-consent-check input[type="checkbox"] {
+  padding: 0;
+  box-shadow: none;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--primary);
+  flex: none;
+}
+
+.privacy-consent-actions {
+  justify-content: flex-end;
+}
+
+.privacy-consent-actions button {
+  min-width: 180px;
+}
+
 .modal-meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1613,6 +1746,78 @@ th:last-child {
   color: var(--muted);
   text-align: center;
   font-size: 0.92rem;
+}
+
+.record-image-preview img:not([hidden]) {
+  cursor: zoom-in;
+  transition: box-shadow 0.18s var(--ease);
+}
+
+.record-image-preview img:hover,
+.record-image-preview img:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-line);
+}
+
+.image-enlarge-note {
+  margin-left: 6px;
+  color: var(--muted);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Full-size prescription image over the record editor */
+.image-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 16, 24, 0.92);
+  animation: fade-in 0.18s var(--ease) both;
+}
+
+.image-viewer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+}
+
+.image-viewer-hint {
+  flex: 1;
+  color: rgba(241, 246, 248, 0.75);
+  font-size: 0.86rem;
+}
+
+.image-viewer-stage {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 0 16px 16px;
+  overflow: auto;
+}
+
+.image-viewer-stage img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  background: #ffffff;
+  border-radius: var(--radius-sm);
+  cursor: zoom-in;
+}
+
+/* Actual size: the image keeps its own pixels and the stage scrolls. */
+.image-viewer.is-zoomed .image-viewer-stage {
+  place-items: start center;
+}
+
+.image-viewer.is-zoomed .image-viewer-stage img {
+  max-width: none;
+  max-height: none;
+  cursor: zoom-out;
 }
 
 .record-image-preview img {
@@ -1842,6 +2047,161 @@ th:last-child {
   width: 100%;
 }
 
+.no-medicine-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Overrides the full-width text input style for this checkbox. */
+.no-medicine-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  flex: none;
+  box-shadow: none;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.no-medicine-option small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+#record-modal-items-section[hidden] {
+  display: none;
+}
+
+/* Medicine library suggestion under a medicine name */
+.medicine-hint:empty {
+  display: none;
+}
+
+.medicine-hint {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--warning);
+  text-align: left;
+}
+
+.medicine-hint.is-corrected {
+  color: var(--primary-strong);
+}
+
+.medicine-hint.is-info {
+  color: var(--muted);
+}
+
+.items-table tr:has(.medicine-hint.is-corrected) .item-medicine {
+  border-color: var(--primary-line);
+  background: var(--primary-soft);
+}
+
+.hint-apply-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--primary-strong);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.hint-apply-btn:hover:not(:disabled) {
+  background: none;
+  box-shadow: none;
+  color: var(--primary);
+}
+
+/* Records: loading state and pages */
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 10px;
+  vertical-align: -3px;
+  border-radius: 50%;
+  border: 2px solid var(--primary-line);
+  border-right-color: var(--primary);
+  animation: spin 0.8s linear infinite;
+}
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.pager[hidden] {
+  display: none;
+}
+
+.pager-summary {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.pager-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pager-buttons button {
+  padding: 6px 12px;
+  font-size: 0.84rem;
+}
+
+.pager-buttons .pager-page.active {
+  background: var(--primary-soft);
+  border-color: var(--primary-line);
+  color: var(--primary-strong);
+}
+
+/* Confirmation shown above the record editor */
+.confirm-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.confirm-panel {
+  position: relative;
+  z-index: 1;
+  width: min(440px, 100%);
+  padding: 24px;
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-strong);
+  animation: modal-in 0.2s var(--ease) both;
+}
+
+.confirm-panel h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+
+.confirm-panel p {
+  margin: 0 0 18px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 /* Dashboard: prescriptions waiting for verification */
 .review-list {
   list-style: none;
@@ -1878,4 +2238,105 @@ th:last-child {
   color: var(--primary-strong);
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+/* Medicine library page */
+.medicine-table td:nth-child(2),
+.medicine-table th:nth-child(2) {
+  white-space: nowrap;
+}
+
+.medicine-table td:last-child,
+.medicine-table th:last-child {
+  text-align: left;
+  color: var(--muted);
+}
+
+.muted-cell {
+  color: var(--muted);
+}
+
+.medicine-sources {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+/* Data Privacy page, shown after sign-in until the user agrees */
+.privacy-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: start center;
+  padding: clamp(16px, 4vw, 48px) 16px;
+}
+
+.privacy-card {
+  width: min(760px, 100%);
+  display: grid;
+  gap: 18px;
+  padding: clamp(22px, 4vw, 40px);
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  animation: rise-in 0.35s var(--ease) both;
+}
+
+.privacy-card-header {
+  display: grid;
+  gap: 10px;
+}
+
+.privacy-card-header .brand {
+  margin-bottom: 6px;
+}
+
+.privacy-card h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.privacy-card h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.privacy-lead,
+.privacy-section p {
+  margin: 0;
+  color: var(--text-2);
+  line-height: 1.65;
+}
+
+.privacy-section ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+.privacy-section li + li {
+  margin-top: 6px;
+}
+
+.privacy-agreement {
+  display: grid;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.privacy-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media (max-width: 560px) {
+  .privacy-actions button {
+    width: 100%;
+  }
 }
