@@ -31,7 +31,6 @@ export const toast = document.getElementById('toast');
 export const logoutBtn = document.getElementById('logout-btn');
 export const recordModal = document.getElementById('record-modal');
 export const recordModalClose = document.getElementById('record-modal-close');
-export const recordModalCancel = document.getElementById('record-modal-cancel');
 export const recordModalSave = document.getElementById('record-modal-save');
 export const recordModalTitle = document.getElementById('record-modal-title');
 export const recordModalSource = document.getElementById('record-modal-source');

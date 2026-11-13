@@ -2,7 +2,6 @@ import {
   authStatus,
   logoutBtn,
   recordModal,
-  recordModalCancel,
   recordModalClose,
   recordModalImage,
   recordModalImagePlaceholder,
@@ -404,7 +403,6 @@ async function initializeRecordsPage() {
   });
 
   recordModalClose.addEventListener('click', closeRecordModal);
-  recordModalCancel.addEventListener('click', closeRecordModal);
   recordModal.addEventListener('click', (event) => {
     if (event.target.hasAttribute('data-close-modal')) {
       closeRecordModal();
